@@ -6,6 +6,7 @@ import machine
 import updater
 import version
 import json
+import gc
 
 
 MAX_BODY_SIZE = 32768
