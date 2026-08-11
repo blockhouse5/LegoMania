@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import io
+import machine
 import updater
 import version
 
@@ -394,7 +395,40 @@ def make_page(
 
     if update_info:
 
-        if update_info.get("ok"):
+        if (
+            update_info.get("ok")
+            and update_info.get("installed")
+        ):
+
+            update_html = """
+            <div class="update-result update-current">
+
+                <strong>
+                Update installed successfully!
+                </strong>
+
+                <p>
+                Version %s has been installed.
+                </p>
+
+                <p>
+                LEGO Project Lab is restarting...
+                </p>
+
+                <p class="small-note">
+                Wait a few seconds, then reopen
+                legolab.local.
+                </p>
+
+            </div>
+            """ % html_escape(
+                update_info.get(
+                    "version",
+                    ""
+                )
+            )
+
+        elif update_info.get("ok"):
 
             if update_info.get("available"):
 
@@ -410,14 +444,20 @@ def make_page(
 
                     <p>%s</p>
 
-                    <button disabled>
+                    <form method="POST">
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="install_update"
+                        onclick="return confirm(
+                            'Install this update and restart LEGO Project Lab?'
+                        );"
+                    >
                         Install Update
                     </button>
 
-                    <p class="small-note">
-                    Installation will be enabled after
-                    the safe update mechanism is tested.
-                    </p>
+                    </form>
 
                 </div>
                 """ % (
@@ -1280,6 +1320,7 @@ async def handle_client(reader, writer):
     status = ""
     active_tab = "programs"
     update_info = None
+    reboot_after_response = False
 
     try:
 
@@ -1310,6 +1351,18 @@ async def handle_client(reader, writer):
             )
 
             await writer.drain()
+
+            if reboot_after_response:
+
+                print()
+                print(
+                    "Update complete."
+                    " Restarting in 2 seconds..."
+                )
+
+                await asyncio.sleep(2)
+
+                machine.reset()
 
             return
 
@@ -1556,6 +1609,53 @@ async def handle_client(reader, writer):
                         "Update check failed: "
                         + str(e)
                     )
+
+            # --------------------------------------
+            # INSTALL UPDATE
+            # --------------------------------------
+
+            elif action == "install_update":
+
+                active_tab = "settings"
+
+                print()
+                print("Installing update...")
+
+                result = updater.install_update()
+
+                if result.get("ok"):
+
+                    new_version = result.get(
+                        "version",
+                        ""
+                    )
+
+                    update_info = {
+                        "ok": True,
+                        "installed": True,
+                        "version": new_version,
+                        "message":
+                            "Update installed successfully. "
+                            "LEGO Project Lab is restarting..."
+                    }
+
+                    status = (
+                        "Update installed successfully."
+                    )
+
+                    reboot_after_response = True
+
+                else:
+
+                    update_info = {
+                        "ok": False,
+                        "message": result.get(
+                            "message",
+                            "Update installation failed."
+                        )
+                    }
+
+                    status = update_info["message"]
 
             # --------------------------------------
             # SAVE & RESTART

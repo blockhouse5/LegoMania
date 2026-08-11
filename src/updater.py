@@ -588,7 +588,7 @@ def rollback_file(name):
             "message": str(e)
         }
 
-def install_update():
+def install_update(simulate_version_failure=False):
 
     response = None
     installed_files = []
@@ -740,7 +740,7 @@ def install_update():
             installed_files.append(
                 name
             )
-            
+
         # --------------------------------------
         # Stage version commit marker
         # --------------------------------------
