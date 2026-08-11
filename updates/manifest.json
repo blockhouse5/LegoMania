@@ -1,5 +1,10 @@
 {
     "version": "0.1.1",
-    "notes": "Initial LEGO Project Lab update system test",
-    "files": []
+    "notes": "Testing safe file download from GitHub",
+    "files": [
+        {
+            "name": "update_test.txt",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/update_test.txt"
+        }
+    ]
 }
