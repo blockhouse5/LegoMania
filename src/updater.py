@@ -1,7 +1,8 @@
+import os
 import json
+import hashlib
 import requests
 import version
-import os
 
 
 # --------------------------------------------------
@@ -232,11 +233,29 @@ def download_file(file_info):
 
     name = file_info.get("name")
     url = file_info.get("url")
+    expected_size = file_info.get("size")
+    expected_sha256 = file_info.get("sha256")
 
     if not name or not url:
-        raise Exception(
-            "Update file is missing name or URL"
-        )
+        return {
+            "ok": False,
+            "name": name,
+            "message": "Update file is missing name or URL"
+        }
+
+    if expected_size is None:
+        return {
+            "ok": False,
+            "name": name,
+            "message": "Manifest is missing file size"
+        }
+
+    if not expected_sha256:
+        return {
+            "ok": False,
+            "name": name,
+            "message": "Manifest is missing SHA-256"
+        }
 
     new_name = name + ".new"
 
@@ -244,6 +263,7 @@ def download_file(file_info):
 
     try:
 
+        print()
         print("Downloading:", name)
         print("From:", url)
 
@@ -258,37 +278,77 @@ def download_file(file_info):
 
         data = response.content
 
-        if not data:
+        actual_size = len(data)
+
+        print(
+            "Downloaded:",
+            actual_size,
+            "bytes"
+        )
+
+        # --------------------------------------
+        # Validate size
+        # --------------------------------------
+
+        if actual_size != expected_size:
+
             raise Exception(
-                "Downloaded file is empty"
+                "Size mismatch: expected {} bytes, got {}".format(
+                    expected_size,
+                    actual_size
+                )
             )
+
+        # --------------------------------------
+        # Validate SHA-256
+        # --------------------------------------
+
+        actual_sha256 = hashlib.sha256(
+            data
+        ).hexdigest()
+
+        if actual_sha256.lower() != expected_sha256.lower():
+
+            raise Exception(
+                "SHA-256 mismatch"
+            )
+
+        print("Size verified")
+        print("SHA-256 verified")
+
+        # --------------------------------------
+        # Only write validated data
+        # --------------------------------------
 
         with open(new_name, "wb") as f:
             f.write(data)
 
         print(
             "Saved:",
-            new_name,
-            "(",
-            len(data),
-            "bytes )"
+            new_name
         )
 
         return {
             "ok": True,
             "name": name,
             "new_name": new_name,
-            "size": len(data)
+            "size": actual_size,
+            "sha256": actual_sha256
         }
 
     except Exception as e:
 
-        # A partial .new file must not survive
-        # a failed download.
+        # Never leave behind an invalid staged file.
         try:
             os.remove(new_name)
         except:
             pass
+
+        print(
+            "Download failed:",
+            name,
+            e
+        )
 
         return {
             "ok": False,
@@ -302,7 +362,7 @@ def download_file(file_info):
             try:
                 response.close()
             except:
-                pass  
+                pass
 
 # --------------------------------------------------
 # Helper function for Install Files
