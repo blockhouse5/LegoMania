@@ -2,6 +2,8 @@ import asyncio
 import os
 import sys
 import io
+import updater
+import version
 
 
 MAX_BODY_SIZE = 32768
@@ -325,7 +327,8 @@ def make_page(
     filename="",
     code="",
     status="",
-    active_tab="programs"
+    active_tab="programs",
+    update_info=None
 ):
 
     rows = ""
@@ -387,6 +390,96 @@ def make_page(
             buttons
         )
 
+    update_html = ""
+
+    if update_info:
+
+        if update_info.get("ok"):
+
+            if update_info.get("available"):
+
+                update_html = """
+                <div class="update-result update-available">
+
+                    <strong>Update available!</strong>
+
+                    <p>
+                    Installed version: %s<br>
+                    Available version: %s
+                    </p>
+
+                    <p>%s</p>
+
+                    <button disabled>
+                        Install Update
+                    </button>
+
+                    <p class="small-note">
+                    Installation will be enabled after
+                    the safe update mechanism is tested.
+                    </p>
+
+                </div>
+                """ % (
+                    html_escape(
+                        update_info.get(
+                            "current",
+                            ""
+                        )
+                    ),
+                    html_escape(
+                        update_info.get(
+                            "latest",
+                            ""
+                        )
+                    ),
+                    html_escape(
+                        update_info.get(
+                            "notes",
+                            ""
+                        )
+                    )
+                )
+
+            else:
+
+                update_html = """
+                <div class="update-result update-current">
+
+                    <strong>
+                    LEGO Project Lab is up to date.
+                    </strong>
+
+                    <p>
+                    Installed version: %s
+                    </p>
+
+                </div>
+                """ % html_escape(
+                    update_info.get(
+                        "current",
+                        ""
+                    )
+                )
+
+        else:
+
+            update_html = """
+            <div class="update-result update-error">
+
+                <strong>
+                Update check failed.
+                </strong>
+
+                <p>%s</p>
+
+            </div>
+            """ % html_escape(
+                update_info.get(
+                    "message",
+                    ""
+                )
+            )
 
     page = """<!DOCTYPE html>
 
@@ -664,6 +757,53 @@ textarea {
     background: var(--page-bg);
 }
 
+
+/* --------------------------------------------------
+   Settings
+   -------------------------------------------------- */
+
+.settings-box {
+    max-width: 650px;
+    background: var(--panel-bg);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.settings-box h2 {
+    margin-top: 0;
+}
+
+.version-display {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.update-result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.update-current {
+    background: #e8f5e9;
+    border-left: 6px solid var(--lego-green);
+}
+
+.update-available {
+    background: #fff6bf;
+    border-left: 6px solid var(--lego-yellow);
+}
+
+.update-error {
+    background: #fde8e8;
+    border-left: 6px solid var(--lego-red);
+}
+
+.small-note {
+    font-size: 14px;
+    color: #555555;
+}
+
 </style>
 
 <script>
@@ -841,6 +981,14 @@ async def main():
     Output
 </button>
 
+<button
+    id="settings-button"
+    class="tab-button"
+    onclick="showTab('settings')"
+>
+    Settings
+</button>
+
 </div>
 
 
@@ -994,6 +1142,47 @@ async def main():
 
 </div>
 
+<!-- ========================================== -->
+<!-- SETTINGS TAB                               -->
+<!-- ========================================== -->
+
+<div
+    id="settings"
+    class="tab-content"
+>
+
+<div class="settings-box">
+
+<h2>LEGO Project Lab Settings</h2>
+
+<div class="version-display">
+
+<strong>Installed Version</strong>
+
+<br>
+
+%s
+
+</div>
+
+<form method="POST">
+
+<button
+    type="submit"
+    name="action"
+    value="check_update"
+>
+    Check for Updates
+</button>
+
+</form>
+
+%s
+
+</div>
+
+</div>
+
 <script>
 
 showTab("%s");
@@ -1011,6 +1200,8 @@ setupEditor();
         html_escape(filename),
         html_escape(code),
         html_escape(status),
+        html_escape(version.VERSION),
+        update_html,
         active_tab
     )
 
@@ -1088,6 +1279,7 @@ async def handle_client(reader, writer):
     code = ""
     status = ""
     active_tab = "programs"
+    update_info = None
 
     try:
 
@@ -1335,6 +1527,37 @@ async def handle_client(reader, writer):
                 active_tab = "output"
 
             # --------------------------------------
+            # CHECK FOR UPDATES
+            # --------------------------------------
+
+            elif action == "check_update":
+
+                active_tab = "settings"
+
+                try:
+
+                    update_info = (
+                        updater.check_for_update()
+                    )
+
+                    status = update_info.get(
+                        "message",
+                        ""
+                    )
+
+                except Exception as e:
+
+                    update_info = {
+                        "ok": False,
+                        "message": str(e)
+                    }
+
+                    status = (
+                        "Update check failed: "
+                        + str(e)
+                    )
+
+            # --------------------------------------
             # SAVE & RESTART
             # --------------------------------------
 
@@ -1418,7 +1641,8 @@ async def handle_client(reader, writer):
             filename,
             code,
             status,
-            active_tab
+            active_tab,
+            update_info
         )
 
 
