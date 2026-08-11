@@ -1915,6 +1915,8 @@ async def handle_client(reader, writer):
 
                 result = updater.install_update()
 
+                gc.collect()
+
                 if result.get("ok"):
 
                     new_version = result.get(
@@ -2038,17 +2040,21 @@ async def handle_client(reader, writer):
         )
 
 
-        response = (
+        headers = (
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/html; charset=utf-8\r\n"
             "Connection: close\r\n"
             "\r\n"
-            + page
         )
 
+        writer.write(
+            headers.encode("utf-8")
+        )
+
+        await writer.drain()
 
         writer.write(
-            response.encode("utf-8")
+            page.encode("utf-8")
         )
 
         await writer.drain()
