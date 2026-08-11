@@ -6,5 +6,9 @@
             "name": "update_test.txt",
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/update_test.txt"
         }
+                {
+            "name": "update_test2.txt",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/update_test2.txt"
+        }
     ]
 }
