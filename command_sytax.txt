@@ -1,0 +1,27 @@
+mpremote commands:
+
+mpremote connect COM3 fs cp C:\Users\chuck.block\Documents\PlatformIO\Projects\LegoMania\src\webserver.py :webserver.py      --- file transfer
+mpremote connect COM3 fs ls                             ---  list files in directory
+
+mpremote connect COM3 exec 'exec(open("webserver.py").read())'    ----- run a script
+
+mpremote connect COM3 fs rm webserver.ph             --- remove a file
+
+
+Task	            mpremote from PC	                                                    MicroPython REPL
+List files	        mpremote connect COM3 fs ls	                                            import os; print(os.listdir())
+Delete file	        mpremote connect COM3 fs rm test.py	                                    import os; os.remove("test.py")
+Run file	        mpremote connect COM3 exec "exec(open('webserver.py').read())"	        exec(open("test.py").read())
+View file	        mpremote connect COM3 fs cat boot.py	                                print(open("test.py").read())
+Upload file	        mpremote connect COM3 fs cp test.py :test.py	—
+Rename file	        mpremote connect COM3 fs mv old.py new.py	                            import os; os.rename("old.py","new.py")
+Make directory	    mpremote connect COM3 fs mkdir projects	                                import os; os.mkdir("projects")
+Remove directory	mpremote connect COM3 fs rmdir projects	                                import os; os.rmdir("projects")
+Current directory	mpremote connect COM3 fs ls*	                                        import os; print(os.getcwd())
+Reset ESP32	        mpremote connect COM3 reset	                                            import machine; machine.reset()
+
+                                                                                            help()
+                                                                                            help(os)
+
+                                                                Also, if a program such as our webserver.py is running forever and you need to get back to the REPL, 
+                                                                Ctrl-C sends a KeyboardInterrupt and normally stops the running program:
