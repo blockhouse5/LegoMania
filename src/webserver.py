@@ -402,7 +402,9 @@ def make_page(
         ):
 
             update_html = """
-            <div class="update-result update-current">
+            <div   
+                id="update-restart"
+                class="update-result update-current">
 
                 <strong>
                 Update installed successfully!
@@ -416,9 +418,10 @@ def make_page(
                 LEGO Project Lab is restarting...
                 </p>
 
-                <p class="small-note">
-                Wait a few seconds, then reopen
-                legolab.local.
+                <p 
+                id="reconnect-status"
+                class="small-note">
+                Waiting for restart...
                 </p>
 
             </div>
@@ -1102,6 +1105,111 @@ function checkForUpdates() {
     request.send();
 }
 
+function reconnectAfterUpdate() {
+
+    var status =
+        document.getElementById(
+            "reconnect-status"
+        );
+
+    var attempts = 0;
+    var maxAttempts = 30;
+
+    function tryReconnect() {
+
+        attempts++;
+
+        status.textContent =
+            "Reconnecting to LEGO Project Lab...";
+
+        var request =
+            new XMLHttpRequest();
+
+        request.open(
+            "GET",
+            "/ping?t=" + Date.now(),
+            true
+        );
+
+        request.timeout = 3000;
+
+        var finished = false;
+
+        function retry() {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+
+            if (attempts >= maxAttempts) {
+
+                status.innerHTML =
+                    "LEGO Project Lab is taking longer "
+                    + "than expected to restart.<br>"
+                    + "You can refresh this page and try again.";
+
+                return;
+            }
+
+            setTimeout(
+                tryReconnect,
+                2000
+            );
+        }
+
+        request.onload = function() {
+
+            if (finished) {
+                return;
+            }
+
+            if (request.status === 200) {
+
+                finished = true;
+
+                status.textContent =
+                    "Connected! Reloading...";
+
+                setTimeout(
+                    function() {
+                        window.location.replace("/");
+                    },
+                    500
+                );
+
+            }
+            else {
+                retry();
+            }
+        };
+
+        request.onerror = function() {
+            retry();
+        };
+
+        request.ontimeout = function() {
+            retry();
+        };
+
+        try {
+            request.send();
+        }
+        catch (e) {
+            retry();
+        }
+    }
+
+    status.textContent =
+        "Waiting for LEGO Project Lab to restart...";
+
+    setTimeout(
+        tryReconnect,
+        4000
+    );
+}
+
 /* Automatic refresh */
 setInterval(refreshOutput, 1000);
 
@@ -1376,6 +1484,14 @@ showTab("%s");
 
 setupEditor();
 
+if (
+    document.getElementById(
+        "update-restart"
+    )
+) {
+    reconnectAfterUpdate();
+}
+
 </script>
 
 
@@ -1510,6 +1626,31 @@ async def handle_client(reader, writer):
                 await asyncio.sleep(2)
 
                 machine.reset()
+
+            return
+
+        # --------------------------------------
+        # PING API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "GET /ping"
+        ):
+
+            response = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/plain\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "OK"
+            )
+
+            writer.write(
+                response.encode("utf-8")
+            )
+
+            await writer.drain()
 
             return
 
