@@ -3,6 +3,7 @@ import json
 import hashlib
 import requests
 import version
+import ubinascii
 
 
 # --------------------------------------------------
@@ -303,9 +304,9 @@ def download_file(file_info):
         # Validate SHA-256
         # --------------------------------------
 
-        actual_sha256 = hashlib.sha256(
-            data
-        ).hexdigest()
+        actual_sha256 = ubinascii.hexlify(
+            hashlib.sha256(data).digest()
+        ).decode()
 
         if actual_sha256.lower() != expected_sha256.lower():
 
