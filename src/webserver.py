@@ -5,6 +5,7 @@ import io
 import machine
 import updater
 import version
+import json
 
 
 MAX_BODY_SIZE = 32768
@@ -955,6 +956,152 @@ function setupEditor() {
     );
 }
 
+function escapeHtml(text) {
+
+    var div =
+        document.createElement("div");
+
+    div.textContent =
+        text == null ? "" : String(text);
+
+    return div.innerHTML;
+}
+
+function checkForUpdates() {
+
+    var button =
+        document.getElementById(
+            "check-update-button"
+        );
+
+    var status =
+        document.getElementById(
+            "update-status"
+        );
+
+    button.disabled = true;
+    button.textContent = "Checking...";
+
+    status.innerHTML =
+        "<p>Checking GitHub for updates...</p>";
+
+    var request = new XMLHttpRequest();
+
+    request.open(
+        "GET",
+        "/check-update",
+        true
+    );
+
+    request.timeout = 20000;
+
+    request.onreadystatechange = function() {
+
+        if (request.readyState !== 4) {
+            return;
+        }
+
+        button.disabled = false;
+        button.textContent =
+            "Check for Updates";
+
+        if (request.status === 200) {
+
+            try {
+
+                var result =
+                    JSON.parse(
+                        request.responseText
+                    );
+
+                if (!result.ok) {
+
+                    status.innerHTML =
+                        '<div class="update-result update-error">'
+                        + '<strong>Update check failed.</strong>'
+                        + '<p>'
+                        + escapeHtml(
+                            result.message || ""
+                        )
+                        + '</p>'
+                        + '</div>';
+
+                }
+                else if (result.available) {
+
+                    status.innerHTML =
+                        '<div class="update-result update-available">'
+                        + '<strong>Update available!</strong>'
+                        + '<p>'
+                        + 'Installed version: '
+                        + escapeHtml(result.current)
+                        + '<br>'
+                        + 'Available version: '
+                        + escapeHtml(result.latest)
+                        + '</p>'
+                        + '<p>'
+                        + escapeHtml(result.notes || "")
+                        + '</p>'
+                        + '<form method="POST">'
+                        + '<button '
+                        + 'type="submit" '
+                        + 'name="action" '
+                        + 'value="install_update">'
+                        + 'Install Update'
+                        + '</button>'
+                        + '</form>'
+                        + '</div>';
+
+                }
+                else {
+
+                    status.innerHTML =
+                        '<div class="update-result update-current">'
+                        + '<strong>'
+                        + 'LEGO Project Lab is up to date.'
+                        + '</strong>'
+                        + '<p>'
+                        + 'Installed version: '
+                        + escapeHtml(result.current)
+                        + '</p>'
+                        + '</div>';
+                }
+
+            }
+            catch (e) {
+
+                status.innerHTML =
+                    '<div class="update-result update-error">'
+                    + '<strong>Invalid update response.</strong>'
+                    + '</div>';
+            }
+
+        }
+        else {
+
+            status.innerHTML =
+                '<div class="update-result update-error">'
+                + '<strong>Could not contact LEGO Project Lab.</strong>'
+                + '</div>';
+        }
+    };
+
+    request.ontimeout = function() {
+
+        button.disabled = false;
+        button.textContent =
+            "Check for Updates";
+
+        status.innerHTML =
+            '<div class="update-result update-error">'
+            + '<strong>Update check timed out.</strong>'
+            + '<p>Please try again.</p>'
+            + '</div>';
+    };
+
+    request.send();
+}
+
 /* Automatic refresh */
 setInterval(refreshOutput, 1000);
 
@@ -1205,17 +1352,17 @@ async def main():
 
 </div>
 
-<form method="POST">
-
 <button
-    type="submit"
-    name="action"
-    value="check_update"
+    type="button"
+    id="check-update-button"
+    onclick="checkForUpdates()"
 >
     Check for Updates
 </button>
 
-</form>
+<div
+    id="update-status"
+></div>
 
 %s
 
@@ -1363,6 +1510,40 @@ async def handle_client(reader, writer):
                 await asyncio.sleep(2)
 
                 machine.reset()
+
+            return
+
+        # --------------------------------------
+        # UPDATE CHECK API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "GET /check-update "
+        ):
+
+            result = (
+                updater.check_for_update()
+            )
+
+            body = json.dumps(
+                result
+            )
+
+            response = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json; "
+                "charset=utf-8\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                + body
+            )
+
+            writer.write(
+                response.encode("utf-8")
+            )
+
+            await writer.drain()
 
             return
 
@@ -1579,36 +1760,6 @@ async def handle_client(reader, writer):
 
                 active_tab = "output"
 
-            # --------------------------------------
-            # CHECK FOR UPDATES
-            # --------------------------------------
-
-            elif action == "check_update":
-
-                active_tab = "settings"
-
-                try:
-
-                    update_info = (
-                        updater.check_for_update()
-                    )
-
-                    status = update_info.get(
-                        "message",
-                        ""
-                    )
-
-                except Exception as e:
-
-                    update_info = {
-                        "ok": False,
-                        "message": str(e)
-                    }
-
-                    status = (
-                        "Update check failed: "
-                        + str(e)
-                    )
 
             # --------------------------------------
             # INSTALL UPDATE
@@ -1760,6 +1911,18 @@ async def handle_client(reader, writer):
         )
 
         await writer.drain()
+
+        if reboot_after_response:
+
+            print()
+            print(
+                "Update complete. "
+                "Restarting in 2 seconds..."
+            )
+
+            await asyncio.sleep(2)
+
+            machine.reset()
 
 
     except Exception as e:

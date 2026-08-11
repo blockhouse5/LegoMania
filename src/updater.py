@@ -4,6 +4,7 @@ import hashlib
 import requests
 import version
 import ubinascii
+import gc
 
 
 # --------------------------------------------------
@@ -56,9 +57,19 @@ def check_for_update():
         print("Checking GitHub for updates...")
         print("Current version:", current_version)
 
+        print("Free memory before GC:", gc.mem_free())
+
+        gc.collect()
+
+        print("Free memory after GC:", gc.mem_free())
+        print("Opening HTTPS connection...")
+
         response = requests.get(
             MANIFEST_URL
         )
+
+        print("HTTPS connection completed")
+        print("Free memory after HTTPS:", gc.mem_free())
 
         if response.status_code != 200:
 
