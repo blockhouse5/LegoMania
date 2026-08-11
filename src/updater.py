@@ -366,7 +366,7 @@ def download_file(file_info):
                 pass
 
 # --------------------------------------------------
-# Helper function for Install Files
+# Helper functions
 # -------------------------------------------------- 
 
 def file_exists(name):
@@ -375,6 +375,50 @@ def file_exists(name):
         return True
     except OSError:
         return False 
+
+def write_version_file(target_version):
+
+    name = "version.py"
+    new_name = name + ".new"
+
+    contents = (
+        'VERSION = "{}"\n'.format(
+            target_version
+        )
+    )
+
+    try:
+
+        with open(new_name, "w") as f:
+            f.write(contents)
+
+        # Verify what we just wrote
+        with open(new_name, "r") as f:
+            check = f.read()
+
+        if check != contents:
+            raise Exception(
+                "Version file verification failed"
+            )
+
+        return {
+            "ok": True,
+            "name": name,
+            "new_name": new_name
+        }
+
+    except Exception as e:
+
+        try:
+            os.remove(new_name)
+        except:
+            pass
+
+        return {
+            "ok": False,
+            "name": name,
+            "message": str(e)
+        }
 
 # --------------------------------------------------
 # Install Files
@@ -696,7 +740,71 @@ def install_update():
             installed_files.append(
                 name
             )
+            
+        # --------------------------------------
+        # Stage version commit marker
+        # --------------------------------------
 
+        print()
+        print(
+            "Preparing version commit:",
+            target_version
+        )
+
+        result = write_version_file(
+            target_version
+        )
+
+        if not result.get("ok"):
+
+            print(
+                "Version staging failed.",
+                "Rolling back update..."
+            )
+
+            for installed_name in reversed(
+                installed_files
+            ):
+                rollback_file(
+                    installed_name
+                )
+
+            return {
+                "ok": False,
+                "message":
+                    "Version commit preparation failed. "
+                    "Update rolled back."
+            }
+
+
+        # --------------------------------------
+        # Commit version
+        # --------------------------------------
+
+        result = install_file(
+            "version.py"
+        )
+
+        if not result.get("ok"):
+
+            print(
+                "Version commit failed.",
+                "Rolling back update..."
+            )
+
+            for installed_name in reversed(
+                installed_files
+            ):
+                rollback_file(
+                    installed_name
+                )
+
+            return {
+                "ok": False,
+                "message":
+                    "Version commit failed. "
+                    "Update rolled back."
+            }
 
         # --------------------------------------
         # Success
