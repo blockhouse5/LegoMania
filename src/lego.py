@@ -98,3 +98,40 @@ class Servo:
             await asyncio.sleep_ms(
                 delay_ms
             )
+
+class Button:
+
+    def __init__(
+        self,
+        pin,
+        debounce_ms=50
+    ):
+
+        self.pin = Pin(
+            pin,
+            Pin.IN,
+            Pin.PULL_UP
+        )
+
+        self.debounce_ms = debounce_ms
+
+
+    def is_pressed(self):
+
+        return self.pin.value() == 0
+
+
+    async def pressed(self):
+
+        # Wait for the button to be pressed
+        while not self.is_pressed():
+            await asyncio.sleep_ms(20)
+
+        # Debounce
+        await asyncio.sleep_ms(
+            self.debounce_ms
+        )
+
+        # Wait for release
+        while self.is_pressed():
+            await asyncio.sleep_ms(20)

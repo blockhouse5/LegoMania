@@ -1,37 +1,53 @@
 import asyncio
-from lego import Servo
+from lego import Servo, Button
 
+
+SERVO_PIN = 42
+BUTTON_PIN = 41
 
 BRIDGE_DOWN = 20
 BRIDGE_UP = 120
 
 
 bridge = Servo(
-    pin=42,
+    pin=SERVO_PIN,
     start_angle=BRIDGE_DOWN
+)
+
+button = Button(
+    pin=BUTTON_PIN
 )
 
 
 async def main():
 
     print("Drawbridge ready")
+    print("Press the button to raise or lower")
+
+    bridge_is_up = False
 
     while True:
 
-        print("Raising drawbridge")
+        await button.pressed()
 
-        await bridge.move_slowly(
-            BRIDGE_UP,
-            delay_ms=20
-        )
+        if bridge_is_up:
 
-        await asyncio.sleep(3)
+            print("Lowering drawbridge")
 
-        print("Lowering drawbridge")
+            await bridge.move_slowly(
+                BRIDGE_DOWN,
+                delay_ms=20
+            )
 
-        await bridge.move_slowly(
-            BRIDGE_DOWN,
-            delay_ms=20
-        )
+            bridge_is_up = False
 
-        await asyncio.sleep(3)
+        else:
+
+            print("Raising drawbridge")
+
+            await bridge.move_slowly(
+                BRIDGE_UP,
+                delay_ms=20
+            )
+
+            bridge_is_up = True

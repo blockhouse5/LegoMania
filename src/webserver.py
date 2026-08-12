@@ -66,6 +66,78 @@ def clear_output():
 
     output_log = ""
 
+def make_program_rows():
+
+    rows = ""
+
+    for name in get_python_files():
+
+        # Hide protected system files
+        if name in PROTECTED_FILES:
+            continue
+
+        running = is_running(name)
+
+        if running:
+            state = "● Running"
+        else:
+            state = "○ Stopped"
+
+        # Open is always available
+        buttons = (
+            '<button '
+            'type="button" '
+            'onclick="openProgram(\'%s\')">'
+            'Open'
+            '</button>'
+            % name
+        )
+
+        if running:
+
+            buttons += (
+                '<button '
+                'type="button" '
+                'onclick="stopProgram(\'%s\')">'
+                'Stop'
+                '</button>'
+                % name
+            )
+
+        else:
+
+            buttons += (
+                '<button '
+                'type="button" '
+                'onclick="runProgram(\'%s\')">'
+                'Run'
+                '</button>'
+                % name
+            )
+
+            buttons += (
+                '<button '
+                'type="button" '
+                'onclick="deleteProgram(\'%s\')">'
+                'Delete'
+                '</button>'
+                % name
+            )
+
+        rows += """
+        <tr>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+        </tr>
+        """ % (
+            html_escape(name),
+            state,
+            buttons
+        )
+
+    return rows
+
 
 def make_program_print(program):
 
@@ -357,16 +429,22 @@ def make_page(
         if is_running(name):
 
             buttons += (
-                '<button name="action" '
-                'value="stop:%s">Stop</button>'
+                '<button '
+                'type="button" '
+                'onclick="stopProgram(\'%s\')">'
+                'Stop'
+                '</button>'
                 % name
             )
 
         else:
 
             buttons += (
-                '<button name="action" '
-                'value="run:%s">Run</button>'
+                '<button '
+                'type="button" '
+                'onclick="runProgram(\'%s\')">'
+                'Run'
+                '</button>'
                 % name
             )
 
@@ -382,17 +460,7 @@ def make_page(
                 % (name, name)
             )
 
-        rows += """
-        <tr>
-            <td>%s</td>
-            <td>%s</td>
-            <td>%s</td>
-        </tr>
-        """ % (
-            html_escape(name),
-            state,
-            buttons
-        )
+    rows = make_program_rows()
 
     update_html = ""
 
@@ -854,6 +922,527 @@ textarea {
 
 <script>
 
+function showUpdateInstallError(message) {
+
+    var status =
+        document.getElementById(
+            "update-status"
+        );
+
+    status.innerHTML =
+        '<div class="update-result update-error">'
+        + '<strong>Update failed.</strong>'
+        + '<p>'
+        + escapeHtml(message)
+        + '</p>'
+        + '</div>';
+
+    var button =
+        document.getElementById(
+            "install-update-button"
+        );
+
+    if (button) {
+        button.disabled = false;
+    }
+}
+
+function installUpdate() {
+
+    var confirmed =
+        confirm(
+            "Install this update and restart "
+            + "LEGO Project Lab?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    var status =
+        document.getElementById(
+            "update-status"
+        );
+
+    var button =
+        document.getElementById(
+            "install-update-button"
+        );
+
+    if (button) {
+        button.disabled = true;
+    }
+
+    status.innerHTML =
+        '<div class="update-result update-current">'
+        + '<strong>Installing update...</strong>'
+        + '<p>'
+        + 'Please leave LEGO Project Lab open.'
+        + '</p>'
+        + '</div>';
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "POST",
+        "/api/install-update",
+        true
+    );
+
+    /*
+       Updates can take considerably longer
+       than ordinary IDE operations.
+    */
+    request.timeout = 120000;
+
+    request.onload = function() {
+
+        if (request.status !== 200) {
+
+            showUpdateInstallError(
+                "LEGO Project Lab returned an error."
+            );
+
+            return;
+        }
+
+        try {
+
+            var result =
+                JSON.parse(
+                    request.responseText
+                );
+
+            if (!result.ok) {
+
+                showUpdateInstallError(
+                    result.message
+                    || "Update failed."
+                );
+
+                return;
+            }
+
+            status.innerHTML =
+                '<div class="update-result update-current">'
+                + '<strong>'
+                + 'Update installed successfully!'
+                + '</strong>'
+                + '<p>'
+                + 'Version '
+                + escapeHtml(result.version || "")
+                + ' has been installed.'
+                + '</p>'
+                + '<p>'
+                + 'LEGO Project Lab is restarting...'
+                + '</p>'
+                + '<p '
+                + 'id="reconnect-status" '
+                + 'class="small-note">'
+                + 'Waiting for restart...'
+                + '</p>'
+                + '</div>';
+
+            reconnectAfterUpdate();
+
+        }
+        catch (e) {
+
+            showUpdateInstallError(
+                "Invalid update response."
+            );
+        }
+    };
+
+    request.onerror = function() {
+
+        /*
+           Don't immediately assume failure here.
+           If the ESP32 reset just as the connection
+           closed, begin looking for it again.
+        */
+
+        status.innerHTML =
+            '<div class="update-result update-current">'
+            + '<strong>'
+            + 'LEGO Project Lab is restarting...'
+            + '</strong>'
+            + '<p '
+            + 'id="reconnect-status" '
+            + 'class="small-note">'
+            + 'Waiting for connection...'
+            + '</p>'
+            + '</div>';
+
+        reconnectAfterUpdate();
+    };
+
+    request.ontimeout = function() {
+
+        showUpdateInstallError(
+            "The update operation timed out."
+        );
+    };
+
+    request.send("");
+}
+
+function openProgram(filename) {
+
+    postApi(
+        "/api/open",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            if (!result.ok) {
+
+                showProgramMessage(
+                    result.message
+                );
+
+                return;
+            }
+
+            document.getElementById(
+                "filename"
+            ).value =
+                result.filename;
+
+            document.getElementById(
+                "code"
+            ).value =
+                result.code;
+
+            showTab(
+                "editor"
+            );
+        }
+    );
+}
+
+function saveProgram() {
+
+    var filename =
+        document.getElementById(
+            "filename"
+        ).value;
+
+    var code =
+        document.getElementById(
+            "code"
+        ).value;
+
+    var data =
+        "filename="
+        + encodeURIComponent(filename)
+        + "&code="
+        + encodeURIComponent(code);
+
+    postApi(
+        "/api/save",
+        data,
+
+        function(result) {
+
+            var status =
+                document.getElementById(
+                    "status"
+                );
+
+            if (result.ok) {
+
+                document.getElementById(
+                    "filename"
+                ).value =
+                    result.filename;
+            }
+
+            if (status) {
+
+                status.textContent =
+                    result.message;
+
+                status.style.display =
+                    "block";
+            }
+
+            refreshPrograms();
+        }
+    );
+}
+
+function deleteProgram(filename) {
+
+    var confirmed =
+        confirm(
+            "Are you sure you want to delete "
+            + filename
+            + "?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    postApi(
+        "/api/delete",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            showProgramMessage(
+                result.message
+            );
+
+            if (result.ok) {
+
+                var currentFilename =
+                    document.getElementById(
+                        "filename"
+                    ).value;
+
+                if (
+                    currentFilename
+                    === filename
+                ) {
+
+                    document.getElementById(
+                        "filename"
+                    ).value = "";
+
+                    document.getElementById(
+                        "code"
+                    ).value = "";
+                }
+            }
+
+            refreshPrograms();
+        }
+    );
+}
+
+function saveAndRestartProgram() {
+
+    var filename =
+        document.getElementById(
+            "filename"
+        ).value;
+
+    var code =
+        document.getElementById(
+            "code"
+        ).value;
+
+    var data =
+        "filename="
+        + encodeURIComponent(filename)
+        + "&code="
+        + encodeURIComponent(code);
+
+    postApi(
+        "/api/save-restart",
+        data,
+
+        function(result) {
+
+            var status =
+                document.getElementById(
+                    "status"
+                );
+
+            if (result.ok) {
+
+                document.getElementById(
+                    "filename"
+                ).value =
+                    result.filename;
+            }
+
+            if (status) {
+
+                status.textContent =
+                    result.message;
+
+                status.style.display =
+                    "block";
+            }
+
+            refreshPrograms();
+        }
+    );
+}
+
+function refreshPrograms() {
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "GET",
+        "/api/programs",
+        true
+    );
+
+    request.timeout = 10000;
+
+    request.onload = function() {
+
+        if (request.status === 200) {
+
+            var body =
+                document.getElementById(
+                    "program-table-body"
+                );
+
+            body.innerHTML =
+                request.responseText;
+        }
+    };
+
+    request.onerror = function() {
+
+        showProgramMessage(
+            "Could not refresh program list."
+        );
+    };
+
+    request.ontimeout = function() {
+
+        showProgramMessage(
+            "Program list refresh timed out."
+        );
+    };
+
+    request.send();
+}
+
+function showProgramMessage(message) {
+
+    var element =
+        document.getElementById(
+            "program-message"
+        );
+
+    element.textContent =
+        message;
+
+    element.style.display =
+        "block";
+}
+
+function postApi(url, data, callback) {
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "POST",
+        url,
+        true
+    );
+
+    request.setRequestHeader(
+        "Content-Type",
+        "application/x-www-form-urlencoded"
+    );
+
+    request.timeout = 10000;
+
+    request.onload = function() {
+
+        if (request.status === 200) {
+
+            try {
+
+                callback(
+                    JSON.parse(
+                        request.responseText
+                    )
+                );
+
+            }
+            catch (e) {
+
+                callback({
+                    ok: false,
+                    message:
+                        "Invalid response from LEGO Project Lab"
+                });
+            }
+
+        }
+        else {
+
+            callback({
+                ok: false,
+                message:
+                    "LEGO Project Lab did not respond"
+            });
+        }
+    };
+
+    request.onerror = function() {
+
+        callback({
+            ok: false,
+            message:
+                "Connection lost"
+        });
+    };
+
+    request.ontimeout = function() {
+
+        callback({
+            ok: false,
+            message:
+                "Request timed out"
+        });
+    };
+
+    request.send(data);
+}
+
+function runProgram(filename) {
+
+    postApi(
+        "/api/run",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            showProgramMessage(
+                result.message
+            );
+
+            refreshPrograms();
+        }
+    );
+}
+
+
+function stopProgram(filename) {
+
+    postApi(
+        "/api/stop",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            showProgramMessage(
+                result.message
+            );
+
+            refreshPrograms();
+        }
+    );
+}
+
 function refreshOutput() {
 
     var request = new XMLHttpRequest();
@@ -1047,14 +1636,12 @@ function checkForUpdates() {
                         + '<p>'
                         + escapeHtml(result.notes || "")
                         + '</p>'
-                        + '<form method="POST">'
                         + '<button '
-                        + 'type="submit" '
-                        + 'name="action" '
-                        + 'value="install_update">'
+                        + 'type="button" '
+                        + 'id="install-update-button" '
+                        + 'onclick="installUpdate()">'
                         + 'Install Update'
                         + '</button>'
-                        + '</form>'
                         + '</div>';
 
                 }
@@ -1306,6 +1893,11 @@ async def main():
     + New Program
 </button>
 
+<div
+    id="program-message"
+    class="status"
+    style="display:none;"
+></div>
 
 <form method="POST">
 
@@ -1317,7 +1909,9 @@ async def main():
     <th>Actions</th>
 </tr>
 
+<tbody id="program-table-body">
 %s
+</tbody>
 
 </table>
 
@@ -1374,18 +1968,16 @@ async def main():
 
 
 <button
-    type="submit"
-    name="action"
-    value="save"
+    type="button"
+    onclick="saveProgram()"
 >
     Save
 </button>
 
 
 <button
-    type="submit"
-    name="action"
-    value="save_restart"
+    type="button"
+    onclick="saveAndRestartProgram()"
 >
     Save & Restart
 </button>
@@ -1393,7 +1985,7 @@ async def main():
 </form>
 
 
-<div class="status">
+<div id="status" class="status">
 
 <strong>Status</strong>
 
@@ -1594,6 +2186,60 @@ async def handle_client(reader, writer):
         )
 
         # --------------------------------------
+        # INSTALL UPDATE API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/install-update "
+        ):
+
+            print()
+            print("Installing update...")
+
+            result = updater.install_update()
+
+            gc.collect()
+
+            response_body = json.dumps(
+                result
+            )
+
+            headers = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+            )
+
+            writer.write(
+                headers.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            writer.write(
+                response_body.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            if result.get("ok"):
+
+                print()
+                print(
+                    "Update complete. "
+                    "Restarting in 2 seconds..."
+                )
+
+                await asyncio.sleep(2)
+
+                machine.reset()
+
+            return
+
+
+        # --------------------------------------
         # OUTPUT API
         # --------------------------------------
 
@@ -1689,6 +2335,470 @@ async def handle_client(reader, writer):
             await writer.drain()
 
             return
+
+        # --------------------------------------
+        # OPEN PROGRAM API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/open "
+        ):
+
+            form = parse_form(body)
+
+            filename = form.get(
+                "filename",
+                ""
+            )
+
+            try:
+
+                code = load_file(
+                    filename
+                )
+
+                response_body = json.dumps({
+                    "ok": True,
+                    "filename": filename,
+                    "code": code
+                })
+
+            except Exception as e:
+
+                response_body = json.dumps({
+                    "ok": False,
+                    "message": "Open failed: " + str(e)
+                })
+
+            headers = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+            )
+
+            writer.write(
+                headers.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            writer.write(
+                response_body.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+
+        # --------------------------------------
+        # SAVE PROGRAM API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/save "
+        ):
+
+            form = parse_form(body)
+
+            filename = form.get(
+                "filename",
+                ""
+            ).strip()
+
+            code = form.get(
+                "code",
+                ""
+            )
+
+            if not filename:
+
+                response_body = json.dumps({
+                    "ok": False,
+                    "message": "Please enter a filename."
+                })
+
+            else:
+
+                if not filename.endswith(".py"):
+                    filename += ".py"
+
+                if is_running(filename):
+
+                    response_body = json.dumps({
+                        "ok": False,
+                        "message":
+                            filename
+                            + " is running. "
+                            + "Stop it before saving changes."
+                    })
+
+                else:
+
+                    try:
+
+                        save_file(
+                            filename,
+                            code
+                        )
+
+                        print(
+                            "Saved:",
+                            filename
+                        )
+
+                        response_body = json.dumps({
+                            "ok": True,
+                            "filename": filename,
+                            "message":
+                                "Saved "
+                                + filename
+                                + " successfully."
+                        })
+
+                    except Exception as e:
+
+                        response_body = json.dumps({
+                            "ok": False,
+                            "message":
+                                "Save failed: "
+                                + str(e)
+                        })
+
+
+            headers = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+            )
+
+            writer.write(
+                headers.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            writer.write(
+                response_body.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+
+        # --------------------------------------
+        # SAVE & RESTART API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/save-restart "
+        ):
+
+            form = parse_form(body)
+
+            filename = form.get(
+                "filename",
+                ""
+            ).strip()
+
+            code = form.get(
+                "code",
+                ""
+            )
+
+            if not filename:
+
+                response_body = json.dumps({
+                    "ok": False,
+                    "message": "Please enter a filename."
+                })
+
+            else:
+
+                if not filename.endswith(".py"):
+                    filename += ".py"
+
+                try:
+
+                    if is_running(filename):
+                        await stop_program(
+                            filename
+                        )
+
+                    save_file(
+                        filename,
+                        code
+                    )
+
+                    result = await start_program(
+                        filename
+                    )
+
+                    if result.startswith("Started"):
+
+                        message = (
+                            "Saved and restarted "
+                            + filename
+                            + " successfully."
+                        )
+
+                        ok = True
+
+                    else:
+
+                        message = result
+                        ok = False
+
+                    response_body = json.dumps({
+                        "ok": ok,
+                        "filename": filename,
+                        "message": message
+                    })
+
+                except Exception as e:
+
+                    response_body = json.dumps({
+                        "ok": False,
+                        "message":
+                            "Save & Restart failed: "
+                            + str(e)
+                    })
+
+            headers = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+            )
+
+            writer.write(
+                headers.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            writer.write(
+                response_body.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+
+        # --------------------------------------
+        # RUN PROGRAM API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/run "
+        ):
+
+            form = parse_form(body)
+
+            filename = form.get(
+                "filename",
+                ""
+            )
+
+            result = await start_program(
+                filename
+            )
+
+            response_body = json.dumps({
+                "ok": result.startswith(
+                    "Started"
+                ),
+                "message": result
+            })
+
+            response = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                + response_body
+            )
+
+            writer.write(
+                response.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+
+
+        # --------------------------------------
+        # STOP PROGRAM API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/stop "
+        ):
+
+            form = parse_form(body)
+
+            filename = form.get(
+                "filename",
+                ""
+            )
+
+            result = await stop_program(
+                filename
+            )
+
+            response_body = json.dumps({
+                "ok": True,
+                "message": result
+            })
+
+            response = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                + response_body
+            )
+
+            writer.write(
+                response.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+
+        # --------------------------------------
+        # DELETE PROGRAM API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "POST /api/delete "
+        ):
+
+            form = parse_form(body)
+
+            filename = form.get(
+                "filename",
+                ""
+            )
+
+            try:
+
+                if filename in PROTECTED_FILES:
+
+                    response_body = json.dumps({
+                        "ok": False,
+                        "message":
+                            filename
+                            + " is a protected system file."
+                    })
+
+                elif is_running(filename):
+
+                    response_body = json.dumps({
+                        "ok": False,
+                        "message":
+                            filename
+                            + " is running. "
+                            + "Stop it before deleting."
+                    })
+
+                else:
+
+                    os.remove(filename)
+
+                    module_name = filename
+
+                    if module_name.endswith(".py"):
+                        module_name = module_name[:-3]
+
+                    if module_name in sys.modules:
+                        del sys.modules[module_name]
+
+                    print(
+                        "Deleted:",
+                        filename
+                    )
+
+                    response_body = json.dumps({
+                        "ok": True,
+                        "message":
+                            "Deleted "
+                            + filename
+                            + " successfully."
+                    })
+
+            except Exception as e:
+
+                response_body = json.dumps({
+                    "ok": False,
+                    "message":
+                        "Delete failed: "
+                        + str(e)
+                })
+
+
+            headers = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+            )
+
+            writer.write(
+                headers.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            writer.write(
+                response_body.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+        
+        # --------------------------------------
+        # PROGRAM LIST API
+        # --------------------------------------
+
+        if request_line.startswith(
+            "GET /api/programs "
+        ):
+
+            response_body = make_program_rows()
+
+            headers = (
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/html; charset=utf-8\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+            )
+
+            writer.write(
+                headers.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            writer.write(
+                response_body.encode("utf-8")
+            )
+
+            await writer.drain()
+
+            return
+
 
         if request_line.startswith("POST"):
 

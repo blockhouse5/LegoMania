@@ -1,12 +1,12 @@
 {
-    "version": "0.1.8",
+    "version": "0.1.9",
     "notes": "First real LEGO Project Lab webserver update",
     "files": [
         {
             "name": "webserver.py",
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/webserver.py",
-            "size": 41501,
-            "sha256": "47bf987d71b1a5ef4932b6e17142f404321101d77e13bc30e66b4ac2b6471249"
+            "size": 41516,
+            "sha256": "d10f251a2572f981c678ca18a3923ba4da8b6e587b1225dd5f50914324212fac"
         }
     ]
 }
