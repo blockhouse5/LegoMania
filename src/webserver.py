@@ -3143,6 +3143,8 @@ async def handle_client(reader, writer):
                         )
 
 
+        gc.collect()
+
         page = make_page(
             filename,
             code,
@@ -3150,7 +3152,6 @@ async def handle_client(reader, writer):
             active_tab,
             update_info
         )
-
 
         headers = (
             "HTTP/1.1 200 OK\r\n"
@@ -3165,11 +3166,25 @@ async def handle_client(reader, writer):
 
         await writer.drain()
 
-        writer.write(
-            page.encode("utf-8")
-        )
 
-        await writer.drain()
+        # Send large HTML page in small chunks
+        chunk_size = 1024
+
+        for start in range(
+            0,
+            len(page),
+            chunk_size
+        ):
+
+            chunk = page[
+                start:start + chunk_size
+            ]
+
+            writer.write(
+                chunk.encode("utf-8")
+            )
+
+            await writer.drain()
 
         if reboot_after_response:
 
