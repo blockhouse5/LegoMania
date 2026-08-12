@@ -20,7 +20,8 @@ PROTECTED_FILES = (
     "main.py",
     "config.py",
     "updater.py",
-    "version.py"
+    "version.py",
+    "lego.py"
 )
 
 # --------------------------------------------------
