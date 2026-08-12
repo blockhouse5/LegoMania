@@ -270,10 +270,11 @@ def download_file(file_info):
         }
 
     new_name = name + ".new"
-
     response = None
 
     try:
+
+        gc.collect()
 
         print()
         print("Downloading:", name)
@@ -288,13 +289,33 @@ def download_file(file_info):
                 )
             )
 
-        data = response.content
+        hasher = hashlib.sha256()
+        total_size = 0
 
-        actual_size = len(data)
+        # Small reusable buffer keeps RAM use low.
+        buffer = bytearray(1024)
+
+        with open(new_name, "wb") as f:
+
+            while True:
+
+                count = response.raw.readinto(
+                    buffer
+                )
+
+                if not count:
+                    break
+
+                chunk = memoryview(buffer)[:count]
+
+                f.write(chunk)
+                hasher.update(chunk)
+
+                total_size += count
 
         print(
             "Downloaded:",
-            actual_size,
+            total_size,
             "bytes"
         )
 
@@ -302,38 +323,35 @@ def download_file(file_info):
         # Validate size
         # --------------------------------------
 
-        if actual_size != expected_size:
+        if total_size != expected_size:
 
             raise Exception(
                 "Size mismatch: expected {} bytes, got {}".format(
                     expected_size,
-                    actual_size
+                    total_size
                 )
             )
+
+        print("Size verified")
 
         # --------------------------------------
         # Validate SHA-256
         # --------------------------------------
 
         actual_sha256 = ubinascii.hexlify(
-            hashlib.sha256(data).digest()
+            hasher.digest()
         ).decode()
 
-        if actual_sha256.lower() != expected_sha256.lower():
+        if (
+            actual_sha256.lower()
+            != expected_sha256.lower()
+        ):
 
             raise Exception(
                 "SHA-256 mismatch"
             )
 
-        print("Size verified")
         print("SHA-256 verified")
-
-        # --------------------------------------
-        # Only write validated data
-        # --------------------------------------
-
-        with open(new_name, "wb") as f:
-            f.write(data)
 
         print(
             "Saved:",
@@ -344,7 +362,7 @@ def download_file(file_info):
             "ok": True,
             "name": name,
             "new_name": new_name,
-            "size": actual_size,
+            "size": total_size,
             "sha256": actual_sha256
         }
 
@@ -375,6 +393,8 @@ def download_file(file_info):
                 response.close()
             except:
                 pass
+
+        gc.collect()
 
 # --------------------------------------------------
 # Helper functions

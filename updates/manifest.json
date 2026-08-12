@@ -5,8 +5,8 @@
         {
             "name": "webserver.py",
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/webserver.py",
-            "size": 43617,
-            "sha256": "8bdaa533d892fcc005f307f256d3308535f5090ecaf3f0d295538f32088f007c"
+            "size": 41501,
+            "sha256": "47bf987d71b1a5ef4932b6e17142f404321101d77e13bc30e66b4ac2b6471249"
         }
     ]
 }
