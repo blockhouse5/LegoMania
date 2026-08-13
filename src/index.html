@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+>
+
+<div class="header">
+
+<h1>LEGO Project Lab</h1>
+
+<div>
+    Build it. Program it. Make it move.
+</div>
+
+</div>
+
+<style>
+
+:root {
+    --lego-red: #d91e18;
+    --lego-yellow: #ffd500;
+    --lego-blue: #0055bf;
+    --lego-green: #237841;
+
+    --page-bg: #f2f3f5;
+    --panel-bg: #ffffff;
+    --text: #222222;
+    --border: #d3d3d3;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--text);
+}
+
+
+/* --------------------------------------------------
+   Header
+   -------------------------------------------------- */
+
+.header {
+    padding: 18px 20px;
+    background: var(--lego-red);
+    color: white;
+    border-bottom: 6px solid var(--lego-yellow);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 0.5px;
+}
+
+
+/* --------------------------------------------------
+   Tabs
+   -------------------------------------------------- */
+
+.tabs {
+    display: flex;
+    background: var(--lego-blue);
+}
+
+.tab-button {
+    padding: 14px 24px;
+    border: none;
+    background: var(--lego-blue);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.tab-button.active {
+    background: var(--lego-yellow);
+    color: #111;
+    font-weight: bold;
+}
+
+.tab-button:hover {
+    opacity: 0.9;
+}
+
+
+/* --------------------------------------------------
+   Tab contents
+   -------------------------------------------------- */
+
+.tab-content {
+    display: none;
+    padding: 20px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+
+/* --------------------------------------------------
+   Programs table
+   -------------------------------------------------- */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel-bg);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th {
+    background: #e7e7e7;
+    font-weight: bold;
+}
+
+td,
+th {
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+    text-align: left;
+}
+
+
+/* --------------------------------------------------
+   Buttons
+   -------------------------------------------------- */
+
+button {
+    font-size: 16px;
+    padding: 9px 15px;
+    margin-right: 6px;
+    margin-top: 5px;
+
+    border: none;
+    border-radius: 6px;
+
+    background: var(--lego-blue);
+    color: white;
+
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+
+/* New program button */
+
+.new-button {
+    background: var(--lego-green);
+    margin-bottom: 15px;
+}
+
+
+/* --------------------------------------------------
+   Editor
+   -------------------------------------------------- */
+
+.editor-box {
+    max-width: 950px;
+    background: var(--panel-bg);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+input {
+    width: 100%;
+    font-size: 18px;
+    padding: 9px;
+    box-sizing: border-box;
+
+    border: 2px solid var(--lego-blue);
+    border-radius: 5px;
+}
+
+textarea {
+    width: 100%;
+    height: 400px;
+
+    font-family:
+        Consolas,
+        Monaco,
+        monospace;
+
+    font-size: 16px;
+
+    padding: 12px;
+    box-sizing: border-box;
+
+    border: 2px solid var(--lego-blue);
+    border-radius: 5px;
+
+    background: #fcfcfc;
+}
+
+
+/* --------------------------------------------------
+   Status
+   -------------------------------------------------- */
+
+.status {
+    margin-top: 20px;
+    padding: 12px;
+
+    background: #fff6bf;
+
+    border-left: 6px solid var(--lego-yellow);
+
+    white-space: pre-wrap;
+
+    border-radius: 5px;
+}
+
+
+/* --------------------------------------------------
+   Output console
+   -------------------------------------------------- */
+
+.output-console {
+    background: #181818;
+    color: #eeeeee;
+
+    font-family:
+        Consolas,
+        Monaco,
+        monospace;
+
+    font-size: 15px;
+    line-height: 1.5;
+
+    padding: 15px;
+
+    min-height: 350px;
+    max-height: 600px;
+
+    overflow-y: auto;
+    white-space: pre-wrap;
+
+    border: 3px solid var(--lego-blue);
+    border-top: 6px solid var(--lego-red);
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+/* Output tab heading */
+
+#output h2 {
+    margin-top: 0;
+}
+
+
+/* Clear Output button */
+
+#output button {
+    background: var(--lego-red);
+    color: white;
+}
+
+
+/* Give the whole Output area a clean panel */
+
+#output {
+    background: var(--page-bg);
+}
+
+
+/* --------------------------------------------------
+   Settings
+   -------------------------------------------------- */
+
+.settings-box {
+    max-width: 650px;
+    background: var(--panel-bg);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.settings-box h2 {
+    margin-top: 0;
+}
+
+.version-display {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.update-result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.update-current {
+    background: #e8f5e9;
+    border-left: 6px solid var(--lego-green);
+}
+
+.update-available {
+    background: #fff6bf;
+    border-left: 6px solid var(--lego-yellow);
+}
+
+.update-error {
+    background: #fde8e8;
+    border-left: 6px solid var(--lego-red);
+}
+
+.small-note {
+    font-size: 14px;
+    color: #555555;
+}
+
+</style>
+
+<script>
+
+var outputRefreshTimer = null;
+
+function showUpdateInstallError(message) {
+
+    var status =
+        document.getElementById(
+            "update-status"
+        );
+
+    status.innerHTML =
+        '<div class="update-result update-error">'
+        + '<strong>Update failed.</strong>'
+        + '<p>'
+        + escapeHtml(message)
+        + '</p>'
+        + '</div>';
+
+    var button =
+        document.getElementById(
+            "install-update-button"
+        );
+
+    if (button) {
+        button.disabled = false;
+    }
+}
+
+function installUpdate() {
+
+    var confirmed =
+        confirm(
+            "Install this update and restart "
+            + "LEGO Project Lab?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    var status =
+        document.getElementById(
+            "update-status"
+        );
+
+    var button =
+        document.getElementById(
+            "install-update-button"
+        );
+
+    if (button) {
+        button.disabled = true;
+    }
+
+    status.innerHTML =
+        '<div class="update-result update-current">'
+        + '<strong>Installing update...</strong>'
+        + '<p>'
+        + 'Please leave LEGO Project Lab open.'
+        + '</p>'
+        + '</div>';
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "POST",
+        "/api/install-update",
+        true
+    );
+
+    /*
+       Updates can take considerably longer
+       than ordinary IDE operations.
+    */
+    request.timeout = 120000;
+
+    request.onload = function() {
+
+        if (request.status !== 200) {
+
+            showUpdateInstallError(
+                "LEGO Project Lab returned an error."
+            );
+
+            return;
+        }
+
+        try {
+
+            var result =
+                JSON.parse(
+                    request.responseText
+                );
+
+            if (!result.ok) {
+
+                showUpdateInstallError(
+                    result.message
+                    || "Update failed."
+                );
+
+                return;
+            }
+
+            status.innerHTML =
+                '<div class="update-result update-current">'
+                + '<strong>'
+                + 'Update installed successfully!'
+                + '</strong>'
+                + '<p>'
+                + 'Version '
+                + escapeHtml(result.version || "")
+                + ' has been installed.'
+                + '</p>'
+                + '<p>'
+                + 'LEGO Project Lab is restarting...'
+                + '</p>'
+                + '<p '
+                + 'id="reconnect-status" '
+                + 'class="small-note">'
+                + 'Waiting for restart...'
+                + '</p>'
+                + '</div>';
+
+            reconnectAfterUpdate();
+
+        }
+        catch (e) {
+
+            showUpdateInstallError(
+                "Invalid update response."
+            );
+        }
+    };
+
+    request.onerror = function() {
+
+        /*
+           Don't immediately assume failure here.
+           If the ESP32 reset just as the connection
+           closed, begin looking for it again.
+        */
+
+        status.innerHTML =
+            '<div class="update-result update-current">'
+            + '<strong>'
+            + 'LEGO Project Lab is restarting...'
+            + '</strong>'
+            + '<p '
+            + 'id="reconnect-status" '
+            + 'class="small-note">'
+            + 'Waiting for connection...'
+            + '</p>'
+            + '</div>';
+
+        reconnectAfterUpdate();
+    };
+
+    request.ontimeout = function() {
+
+        showUpdateInstallError(
+            "The update operation timed out."
+        );
+    };
+
+    request.send("");
+}
+
+function openProgram(filename) {
+
+    postApi(
+        "/api/open",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            if (!result.ok) {
+
+                showProgramMessage(
+                    result.message
+                );
+
+                return;
+            }
+
+            document.getElementById(
+                "filename"
+            ).value =
+                result.filename;
+
+            document.getElementById(
+                "code"
+            ).value =
+                result.code;
+
+            showTab(
+                "editor"
+            );
+        }
+    );
+}
+
+function saveProgram() {
+
+    var filename =
+        document.getElementById(
+            "filename"
+        ).value;
+
+    var code =
+        document.getElementById(
+            "code"
+        ).value;
+
+    var data =
+        "filename="
+        + encodeURIComponent(filename)
+        + "&code="
+        + encodeURIComponent(code);
+
+    postApi(
+        "/api/save",
+        data,
+
+        function(result) {
+
+            var status =
+                document.getElementById(
+                    "status"
+                );
+
+            if (result.ok) {
+
+                document.getElementById(
+                    "filename"
+                ).value =
+                    result.filename;
+            }
+
+            if (status) {
+
+                status.textContent =
+                    result.message;
+
+                status.style.display =
+                    "block";
+            }
+
+            refreshPrograms();
+        }
+    );
+}
+
+function deleteProgram(filename) {
+
+    var confirmed =
+        confirm(
+            "Are you sure you want to delete "
+            + filename
+            + "?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    postApi(
+        "/api/delete",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            showProgramMessage(
+                result.message
+            );
+
+            if (result.ok) {
+
+                var currentFilename =
+                    document.getElementById(
+                        "filename"
+                    ).value;
+
+                if (
+                    currentFilename
+                    === filename
+                ) {
+
+                    document.getElementById(
+                        "filename"
+                    ).value = "";
+
+                    document.getElementById(
+                        "code"
+                    ).value = "";
+                }
+            }
+
+            refreshPrograms();
+        }
+    );
+}
+
+function saveAndRestartProgram() {
+
+    var filename =
+        document.getElementById(
+            "filename"
+        ).value;
+
+    var code =
+        document.getElementById(
+            "code"
+        ).value;
+
+    var data =
+        "filename="
+        + encodeURIComponent(filename)
+        + "&code="
+        + encodeURIComponent(code);
+
+    postApi(
+        "/api/save-restart",
+        data,
+
+        function(result) {
+
+            var status =
+                document.getElementById(
+                    "status"
+                );
+
+            if (result.ok) {
+
+                document.getElementById(
+                    "filename"
+                ).value =
+                    result.filename;
+            }
+
+            if (status) {
+
+                status.textContent =
+                    result.message;
+
+                status.style.display =
+                    "block";
+            }
+
+            refreshPrograms();
+        }
+    );
+}
+
+function refreshPrograms() {
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "GET",
+        "/api/programs",
+        true
+    );
+
+    request.timeout = 10000;
+
+    request.onload = function() {
+
+        if (request.status === 200) {
+
+            var body =
+                document.getElementById(
+                    "program-table-body"
+                );
+
+            body.innerHTML =
+                request.responseText;
+        }
+    };
+
+    request.onerror = function() {
+
+        showProgramMessage(
+            "Could not refresh program list."
+        );
+    };
+
+    request.ontimeout = function() {
+
+        showProgramMessage(
+            "Program list refresh timed out."
+        );
+    };
+
+    request.send();
+}
+
+function showProgramMessage(message) {
+
+    var element =
+        document.getElementById(
+            "program-message"
+        );
+
+    element.textContent =
+        message;
+
+    element.style.display =
+        "block";
+}
+
+function postApi(url, data, callback) {
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "POST",
+        url,
+        true
+    );
+
+    request.setRequestHeader(
+        "Content-Type",
+        "application/x-www-form-urlencoded"
+    );
+
+    request.timeout = 10000;
+
+    request.onload = function() {
+
+        if (request.status === 200) {
+
+            try {
+
+                callback(
+                    JSON.parse(
+                        request.responseText
+                    )
+                );
+
+            }
+            catch (e) {
+
+                callback({
+                    ok: false,
+                    message:
+                        "Invalid response from LEGO Project Lab"
+                });
+            }
+
+        }
+        else {
+
+            callback({
+                ok: false,
+                message:
+                    "LEGO Project Lab did not respond"
+            });
+        }
+    };
+
+    request.onerror = function() {
+
+        callback({
+            ok: false,
+            message:
+                "Connection lost"
+        });
+    };
+
+    request.ontimeout = function() {
+
+        callback({
+            ok: false,
+            message:
+                "Request timed out"
+        });
+    };
+
+    request.send(data);
+}
+
+function runProgram(filename) {
+
+    postApi(
+        "/api/run",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            showProgramMessage(
+                result.message
+            );
+
+            refreshPrograms();
+        }
+    );
+}
+
+
+function stopProgram(filename) {
+
+    postApi(
+        "/api/stop",
+        "filename="
+            + encodeURIComponent(filename),
+
+        function(result) {
+
+            showProgramMessage(
+                result.message
+            );
+
+            refreshPrograms();
+        }
+    );
+}
+
+function refreshOutput() {
+
+    var request = new XMLHttpRequest();
+
+    request.open(
+        "GET",
+        "/output",
+        true
+    );
+
+    request.onreadystatechange = function() {
+
+        if (
+            request.readyState === 4 &&
+            request.status === 200
+        ) {
+
+            var output =
+                document.getElementById(
+                    "output-log"
+                );
+
+            output.textContent =
+                request.responseText;
+
+            output.scrollTop =
+                output.scrollHeight;
+        }
+    };
+
+    request.send();
+}
+
+ function showTab(name) {
+
+    var tabs =
+        document.getElementsByClassName(
+            "tab-content"
+        );
+
+    var buttons =
+        document.getElementsByClassName(
+            "tab-button"
+        );
+
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove("active");
+    }
+
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].classList.remove("active");
+    }
+
+    document
+        .getElementById(name)
+        .classList
+        .add("active");
+
+    document
+        .getElementById(name + "-button")
+        .classList
+        .add("active");
+
+
+    // Stop any existing output polling
+
+    if (outputRefreshTimer !== null) {
+
+        clearInterval(
+            outputRefreshTimer
+        );
+
+        outputRefreshTimer = null;
+    }
+
+
+    // Only poll while Output tab is visible
+
+    if (name === "output") {
+
+        refreshOutput();
+
+        outputRefreshTimer =
+            setInterval(
+                refreshOutput,
+                2000
+            );
+    }
+}
+
+function setupEditor() {
+
+    var editor =
+        document.getElementById("code");
+
+    editor.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Tab") {
+
+                event.preventDefault();
+
+                var start =
+                    editor.selectionStart;
+
+                var end =
+                    editor.selectionEnd;
+
+                var value =
+                    editor.value;
+
+                var spaces = "    ";
+
+                editor.value =
+                    value.substring(0, start)
+                    + spaces
+                    + value.substring(end);
+
+                editor.selectionStart =
+                    start + spaces.length;
+
+                editor.selectionEnd =
+                    start + spaces.length;
+            }
+        }
+    );
+}
+
+function escapeHtml(text) {
+
+    var div =
+        document.createElement("div");
+
+    div.textContent =
+        text == null ? "" : String(text);
+
+    return div.innerHTML;
+}
+
+function checkForUpdates() {
+
+    var button =
+        document.getElementById(
+            "check-update-button"
+        );
+
+    var status =
+        document.getElementById(
+            "update-status"
+        );
+
+    button.disabled = true;
+    button.textContent = "Checking...";
+
+    status.innerHTML =
+        "<p>Checking GitHub for updates...</p>";
+
+    var request = new XMLHttpRequest();
+
+    request.open(
+        "GET",
+        "/check-update",
+        true
+    );
+
+    request.timeout = 20000;
+
+    request.onreadystatechange = function() {
+
+        if (request.readyState !== 4) {
+            return;
+        }
+
+        button.disabled = false;
+        button.textContent =
+            "Check for Updates";
+
+        if (request.status === 200) {
+
+            try {
+
+                var result =
+                    JSON.parse(
+                        request.responseText
+                    );
+
+                if (!result.ok) {
+
+                    status.innerHTML =
+                        '<div class="update-result update-error">'
+                        + '<strong>Update check failed.</strong>'
+                        + '<p>'
+                        + escapeHtml(
+                            result.message || ""
+                        )
+                        + '</p>'
+                        + '</div>';
+
+                }
+                else if (result.available) {
+
+                    status.innerHTML =
+                        '<div class="update-result update-available">'
+                        + '<strong>Update available!</strong>'
+                        + '<p>'
+                        + 'Installed version: '
+                        + escapeHtml(result.current)
+                        + '<br>'
+                        + 'Available version: '
+                        + escapeHtml(result.latest)
+                        + '</p>'
+                        + '<p>'
+                        + escapeHtml(result.notes || "")
+                        + '</p>'
+                        + '<button '
+                        + 'type="button" '
+                        + 'id="install-update-button" '
+                        + 'onclick="installUpdate()">'
+                        + 'Install Update'
+                        + '</button>'
+                        + '</div>';
+
+                }
+                else {
+
+                    status.innerHTML =
+                        '<div class="update-result update-current">'
+                        + '<strong>'
+                        + 'LEGO Project Lab is up to date.'
+                        + '</strong>'
+                        + '<p>'
+                        + 'Installed version: '
+                        + escapeHtml(result.current)
+                        + '</p>'
+                        + '</div>';
+                }
+
+            }
+            catch (e) {
+
+                status.innerHTML =
+                    '<div class="update-result update-error">'
+                    + '<strong>Invalid update response.</strong>'
+                    + '</div>';
+            }
+
+        }
+        else {
+
+            status.innerHTML =
+                '<div class="update-result update-error">'
+                + '<strong>Could not contact LEGO Project Lab.</strong>'
+                + '</div>';
+        }
+    };
+
+    request.ontimeout = function() {
+
+        button.disabled = false;
+        button.textContent =
+            "Check for Updates";
+
+        status.innerHTML =
+            '<div class="update-result update-error">'
+            + '<strong>Update check timed out.</strong>'
+            + '<p>Please try again.</p>'
+            + '</div>';
+    };
+
+    request.send();
+}
+
+function reconnectAfterUpdate() {
+
+    var status =
+        document.getElementById(
+            "reconnect-status"
+        );
+
+    var attempts = 0;
+    var maxAttempts = 30;
+
+    function tryReconnect() {
+
+        attempts++;
+
+        status.textContent =
+            "Reconnecting to LEGO Project Lab...";
+
+        var request =
+            new XMLHttpRequest();
+
+        request.open(
+            "GET",
+            "/ping?t=" + Date.now(),
+            true
+        );
+
+        request.timeout = 3000;
+
+        var finished = false;
+
+        function retry() {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+
+            if (attempts >= maxAttempts) {
+
+                status.innerHTML =
+                    "LEGO Project Lab is taking longer "
+                    + "than expected to restart.<br>"
+                    + "You can refresh this page and try again.";
+
+                return;
+            }
+
+            setTimeout(
+                tryReconnect,
+                2000
+            );
+        }
+
+        request.onload = function() {
+
+            if (finished) {
+                return;
+            }
+
+            if (request.status === 200) {
+
+                finished = true;
+
+                status.textContent =
+                    "Connected! Reloading...";
+
+                setTimeout(
+                    function() {
+                        window.location.replace("/");
+                    },
+                    500
+                );
+
+            }
+            else {
+                retry();
+            }
+        };
+
+        request.onerror = function() {
+            retry();
+        };
+
+        request.ontimeout = function() {
+            retry();
+        };
+
+        try {
+            request.send();
+        }
+        catch (e) {
+            retry();
+        }
+    }
+
+    status.textContent =
+        "Waiting for LEGO Project Lab to restart...";
+
+    setTimeout(
+        tryReconnect,
+        4000
+    );
+}
+
+
+function clearOutput() {
+
+    postApi(
+        "/api/clear-output",
+        "",
+        function(result) {
+
+            if (result.ok) {
+                refreshOutput();
+            }
+            else {
+                showProgramMessage(
+                    result.message
+                );
+            }
+        }
+    );
+}
+
+
+function refreshVersion() {
+
+    var request =
+        new XMLHttpRequest();
+
+    request.open(
+        "GET",
+        "/api/version",
+        true
+    );
+
+    request.timeout = 10000;
+
+    request.onload = function() {
+
+        if (request.status === 200) {
+
+            try {
+
+                var result =
+                    JSON.parse(
+                        request.responseText
+                    );
+
+                if (result.ok) {
+
+                    document.getElementById(
+                        "installed-version"
+                    ).textContent =
+                        result.version;
+                }
+            }
+            catch (e) {
+                console.log(
+                    "Version refresh failed:",
+                    e
+                );
+            }
+        }
+    };
+
+    request.send();
+}
+
+
+function newProgram() {
+
+    document.getElementById(
+        "filename"
+    ).value = "";
+
+    document.getElementById(
+        "code"
+    ).value =
+`import asyncio
+
+async def main():
+
+    while True:
+
+        # Your LEGO code goes here
+
+        await asyncio.sleep(1)
+`;
+
+    showTab("editor");
+
+    document.getElementById(
+        "filename"
+    ).focus();
+}
+
+</script>
+
+</head>
+
+
+<body>
+
+
+<div class="tabs">
+
+<button
+    id="programs-button"
+    class="tab-button"
+    onclick="showTab('programs')"
+>
+    Programs
+</button>
+
+
+<button
+    id="editor-button"
+    class="tab-button"
+    onclick="showTab('editor')"
+>
+    Editor
+</button>
+
+<button
+    id="output-button"
+    class="tab-button"
+    onclick="showTab('output')"
+>
+    Output
+</button>
+
+<button
+    id="settings-button"
+    class="tab-button"
+    onclick="showTab('settings')"
+>
+    Settings
+</button>
+
+</div>
+
+
+<!-- ========================================== -->
+<!-- PROGRAMS TAB                               -->
+<!-- ========================================== -->
+
+<div
+    id="programs"
+    class="tab-content"
+>
+
+<button
+    type="button"
+    class="new-button"
+    onclick="newProgram()"
+>
+    + New Program
+</button>
+
+<div
+    id="program-message"
+    class="status"
+    style="display:none;"
+></div>
+
+<form method="POST">
+
+<table>
+
+<tr>
+    <th>Program</th>
+    <th>Status</th>
+    <th>Actions</th>
+</tr>
+
+<tbody id="program-table-body">
+</tbody>
+
+</table>
+
+</form>
+
+</div>
+
+
+<!-- ========================================== -->
+<!-- EDITOR TAB                                 -->
+<!-- ========================================== -->
+
+<div
+    id="editor"
+    class="tab-content"
+>
+
+<div class="editor-box">
+
+<form method="POST">
+
+<label>
+    <strong>Filename</strong>
+</label>
+
+<br>
+
+<input
+    id="filename"
+    type="text"
+    name="filename"
+    value=""
+    placeholder="my_program.py"
+>
+
+<br><br>
+
+
+<label>
+    <strong>Python code</strong>
+</label>
+
+<br>
+
+<textarea
+    id="code"
+    name="code"
+    spellcheck="false"
+    autocorrect="off"
+    autocapitalize="off"
+></textarea>
+
+<br>
+
+
+<button
+    type="button"
+    onclick="saveProgram()"
+>
+    Save
+</button>
+
+
+<button
+    type="button"
+    onclick="saveAndRestartProgram()"
+>
+    Save & Restart
+</button>
+
+</form>
+
+
+<div
+    id="status"
+    class="status"
+    style="display:none;"
+></div>
+
+</div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- OUTPUT TAB                                 -->
+<!-- ========================================== -->
+
+<div
+    id="output"
+    class="tab-content"
+>
+
+<h2>Program Output</h2>
+
+<button
+    type="button"
+    onclick="clearOutput()"
+>
+    Clear Output
+</button>
+
+<br>
+
+<div
+    id="output-log"
+    class="output-console"
+></div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- SETTINGS TAB                               -->
+<!-- ========================================== -->
+
+<div
+    id="settings"
+    class="tab-content"
+>
+
+<div class="settings-box">
+
+<h2>LEGO Project Lab Settings</h2>
+
+<div class="version-display">
+
+<strong>Installed Version</strong>
+
+<br>
+
+<span id="installed-version">...</span>
+
+</div>
+
+<button
+    type="button"
+    id="check-update-button"
+    onclick="checkForUpdates()"
+>
+    Check for Updates
+</button>
+
+<div
+    id="update-status"
+></div>
+
+</div>
+
+</div>
+
+<script>
+
+showTab("programs");
+
+setupEditor();
+
+refreshPrograms();
+refreshVersion();
+
+</script>
+
+
+</body>
+
+</html>
