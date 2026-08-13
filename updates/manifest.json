@@ -1,5 +1,5 @@
 {
-    "version": "0.2.0",
+    "version": "0.1.10",
     "notes": "LEGO Project Lab update",
     "files": [
         {
@@ -11,14 +11,14 @@
         {
             "name": "index.html",
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/index.html",
-            "size": 28040,
-            "sha256": "71d226234caed01d0668e8c2ddda5ea80494a26be4751b875a2e83080461ba9e"
+            "size": 28041,
+            "sha256": "ac639fe9a523e6b129c794fec26b070beb8115213cd43138809acca1f4c66521"
         },
         {
             "name": "lego.py",
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/lego.py",
-            "size": 2153,
-            "sha256": "1b878c79fcddb852884f299eec1278fcbb0b9180d6444f8eb8069b784a28ca7e"
+            "size": 2152,
+            "sha256": "58bb16902821f406d9605e00b1acb1d69c459948e53ee8737f7ee60dbb2dbc44"
         }
     ]
 }
