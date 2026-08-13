@@ -5,3 +5,4 @@
 .vscode/ipch
 src/config.py
 command_syntax.txt
+build_manifest.py

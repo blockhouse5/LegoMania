@@ -1,7 +1,6 @@
 from machine import Pin, PWM
 import asyncio
 
-
 class Servo:
 
     def __init__(

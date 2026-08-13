@@ -1,12 +1,24 @@
 {
-    "version": "0.1.9",
-    "notes": "First real LEGO Project Lab webserver update",
+    "version": "0.2.0",
+    "notes": "LEGO Project Lab update",
     "files": [
         {
             "name": "webserver.py",
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/webserver.py",
-            "size": 65942,
-            "sha256": "7c5c996629420820dff007d7a77305df31f3dc50c82bec8cb0ca5a797f94fa07"
+            "size": 28380,
+            "sha256": "caff4a7038c710335c3f2170be561816f6f7bc93d84ffd1305fd033413705f4d"
+        },
+        {
+            "name": "index.html",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/index.html",
+            "size": 28040,
+            "sha256": "71d226234caed01d0668e8c2ddda5ea80494a26be4751b875a2e83080461ba9e"
+        },
+        {
+            "name": "lego.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/lego.py",
+            "size": 2153,
+            "sha256": "1b878c79fcddb852884f299eec1278fcbb0b9180d6444f8eb8069b784a28ca7e"
         }
     ]
 }
