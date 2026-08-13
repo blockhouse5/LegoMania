@@ -1,22 +1,22 @@
 {
-    "version": "0.1.10",
+    "version": "0.1.11",
     "notes": "LEGO Project Lab update",
     "files": [
         {
             "name": "webserver.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/webserver.py",
-            "size": 28380,
-            "sha256": "caff4a7038c710335c3f2170be561816f6f7bc93d84ffd1305fd033413705f4d"
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/02f3d860c8a45c2afa7f18287f8196c2071838bd/src/webserver.py",
+            "size": 27124,
+            "sha256": "e9d138e55e1905dc24df689662c2891939f85081f08a2906b7ea215dbf44f341"
         },
         {
             "name": "index.html",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/index.html",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/02f3d860c8a45c2afa7f18287f8196c2071838bd/src/index.html",
             "size": 28041,
             "sha256": "ac639fe9a523e6b129c794fec26b070beb8115213cd43138809acca1f4c66521"
         },
         {
             "name": "lego.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/main/src/lego.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/02f3d860c8a45c2afa7f18287f8196c2071838bd/src/lego.py",
             "size": 2152,
             "sha256": "58bb16902821f406d9605e00b1acb1d69c459948e53ee8737f7ee60dbb2dbc44"
         }
