@@ -2,7 +2,6 @@ import network
 import time
 import socket
 import machine
-import webrepl
 
 HOSTNAME = "legolab"
 SETUP_AP_NAME = "LEGO-Lab-Setup"
@@ -329,10 +328,8 @@ if ssid:
     )
 
 
-if wlan:
-
-    webrepl.start()
-
-else:
+if not wlan:
 
     start_setup_mode()
+
+print("boot.py finished")
