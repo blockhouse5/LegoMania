@@ -327,6 +327,8 @@ textarea {
 <script>
 
 var outputRefreshTimer = null;
+var outputRequestInProgress = false;
+var apiCommandInProgress = false;
 
 function showUpdateInstallError(message) {
 
@@ -742,6 +744,8 @@ function showProgramMessage(message) {
 
 function postApi(url, data, callback) {
 
+    apiCommandInProgress = true;
+
     var request =
         new XMLHttpRequest();
 
@@ -759,6 +763,8 @@ function postApi(url, data, callback) {
     request.timeout = 10000;
 
     request.onload = function() {
+
+        apiCommandInProgress = false;
 
         if (request.status === 200) {
 
@@ -793,6 +799,8 @@ function postApi(url, data, callback) {
 
     request.onerror = function() {
 
+        apiCommandInProgress = false;
+
         callback({
             ok: false,
             message:
@@ -801,6 +809,8 @@ function postApi(url, data, callback) {
     };
 
     request.ontimeout = function() {
+
+        apiCommandInProgress = false;
 
         callback({
             ok: false,
@@ -849,9 +859,23 @@ function stopProgram(filename) {
     );
 }
 
+
+
 function refreshOutput() {
 
-    var request = new XMLHttpRequest();
+    // Do not create overlapping output requests,
+    // or poll while another command is running.
+    if (
+        outputRequestInProgress ||
+        apiCommandInProgress
+    ) {
+        return;
+    }
+
+    outputRequestInProgress = true;
+
+    var request =
+        new XMLHttpRequest();
 
     request.open(
         "GET",
@@ -859,12 +883,13 @@ function refreshOutput() {
         true
     );
 
-    request.onreadystatechange = function() {
+    request.timeout = 5000;
 
-        if (
-            request.readyState === 4 &&
-            request.status === 200
-        ) {
+    request.onload = function() {
+
+        outputRequestInProgress = false;
+
+        if (request.status === 200) {
 
             var output =
                 document.getElementById(
@@ -877,6 +902,18 @@ function refreshOutput() {
             output.scrollTop =
                 output.scrollHeight;
         }
+    };
+
+    request.onerror = function() {
+        outputRequestInProgress = false;
+    };
+
+    request.ontimeout = function() {
+        outputRequestInProgress = false;
+    };
+
+    request.onabort = function() {
+        outputRequestInProgress = false;
     };
 
     request.send();
