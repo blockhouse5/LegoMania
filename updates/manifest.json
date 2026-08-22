@@ -1,24 +1,30 @@
 {
-    "version": "0.1.11",
+    "version": "0.2.2",
     "notes": "LEGO Project Lab update",
     "files": [
         {
-            "name": "webserver.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/02f3d860c8a45c2afa7f18287f8196c2071838bd/src/webserver.py",
-            "size": 27124,
-            "sha256": "e9d138e55e1905dc24df689662c2891939f85081f08a2906b7ea215dbf44f341"
+            "name": "five_torches.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/five_torches.py",
+            "size": 1127,
+            "sha256": "dc7d0cc1a4d82b4aecb8987f1f4436727ab5d397c446a7451ab9dc744841fc30"
+        },
+        {
+            "name": "running_lights.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/running_lights.py",
+            "size": 605,
+            "sha256": "e97796f81a239028c842b1dafe1af8419ec02330eeaac01e4b9e5eb8f0b9ee82"
+        },
+        {
+            "name": "color_test.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/color_test.py",
+            "size": 711,
+            "sha256": "833030cd722bb2cf559366ae1660fc249c0f2e11f1ff890c31a4f3011918fa4a"
         },
         {
             "name": "index.html",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/02f3d860c8a45c2afa7f18287f8196c2071838bd/src/index.html",
-            "size": 28041,
-            "sha256": "ac639fe9a523e6b129c794fec26b070beb8115213cd43138809acca1f4c66521"
-        },
-        {
-            "name": "lego.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/02f3d860c8a45c2afa7f18287f8196c2071838bd/src/lego.py",
-            "size": 2152,
-            "sha256": "58bb16902821f406d9605e00b1acb1d69c459948e53ee8737f7ee60dbb2dbc44"
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/index.html",
+            "size": 28764,
+            "sha256": "c5c56aa5b7cf4c79cbd4b2291ab691fc172d53240f3626cdcb3bf3fbfcebe6f9"
         }
     ]
 }
