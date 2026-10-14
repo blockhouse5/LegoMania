@@ -7,6 +7,12 @@
             "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/5827d6a81b977c1a6c8e427935f767faba8ddcfe/src/index.html",
             "size": 28766,
             "sha256": "77b9ea7b5986e96c2f1b996e48a304e09ea6e2cd7c1585627f47782b8e3751ad"
+        },
+        {
+            "name": "billboard_messages.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/e2fe1eec5fd5ccda1aad1aeba8fc2a60f1b9c130/src/billboard_messages.py",
+            "size": 580,
+            "sha256": "577a84caa3084e8b57d594d4c9713d11ad199393c8c49bed84153a6f5e6a6bb8"
         }
     ]
 }
