@@ -695,7 +695,7 @@ function refreshPrograms() {
         true
     );
 
-    request.timeout = 10000;
+    request.timeout = 30000;
 
     request.onload = function() {
 
@@ -760,7 +760,7 @@ function postApi(url, data, callback) {
         "application/x-www-form-urlencoded"
     );
 
-    request.timeout = 10000;
+    request.timeout = 100000;
 
     request.onload = function() {
 
@@ -883,7 +883,7 @@ function refreshOutput() {
         true
     );
 
-    request.timeout = 5000;
+    request.timeout = 30000;
 
     request.onload = function() {
 
@@ -1052,7 +1052,7 @@ function checkForUpdates() {
         true
     );
 
-    request.timeout = 20000;
+    request.timeout = 30000;
 
     request.onreadystatechange = function() {
 
@@ -1296,7 +1296,7 @@ function refreshVersion() {
         true
     );
 
-    request.timeout = 10000;
+    request.timeout = 30000;
 
     request.onload = function() {
 
