@@ -1,30 +1,12 @@
 {
-    "version": "0.2.2",
-    "notes": "LEGO Project Lab update",
+    "version": "0.2.3",
+    "notes": "Updated LEGO Project Lab web interface",
     "files": [
         {
-            "name": "five_torches.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/five_torches.py",
-            "size": 1127,
-            "sha256": "dc7d0cc1a4d82b4aecb8987f1f4436727ab5d397c446a7451ab9dc744841fc30"
-        },
-        {
-            "name": "running_lights.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/running_lights.py",
-            "size": 605,
-            "sha256": "e97796f81a239028c842b1dafe1af8419ec02330eeaac01e4b9e5eb8f0b9ee82"
-        },
-        {
-            "name": "color_test.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/color_test.py",
-            "size": 711,
-            "sha256": "833030cd722bb2cf559366ae1660fc249c0f2e11f1ff890c31a4f3011918fa4a"
-        },
-        {
             "name": "index.html",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d913e0215c8ca4c7fe2a76a37cdafa82ba57985f/src/index.html",
-            "size": 28764,
-            "sha256": "c5c56aa5b7cf4c79cbd4b2291ab691fc172d53240f3626cdcb3bf3fbfcebe6f9"
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/5827d6a81b977c1a6c8e427935f767faba8ddcfe/src/index.html",
+            "size": 28766,
+            "sha256": "77b9ea7b5986e96c2f1b996e48a304e09ea6e2cd7c1585627f47782b8e3751ad"
         }
     ]
 }
