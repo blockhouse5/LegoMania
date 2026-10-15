@@ -3,16 +3,22 @@
     "notes": "Updated LEGO Project Lab display test files",
     "files": [
         {
-            "name": "st7789_240x240.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d82a3e3265fa3eaf350d587eceef9aa2b6b25b27/src/st7789_240x240.py",
-            "size": 5434,
-            "sha256": "cbc5908502ce09ba26ad01299b1ac32fcca9090ce9856f24cc5f6ff2620192bd"
+            "name": "make_rgb565_splash.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/fe900094782884c0ac67726313c139d7c8a77594/src/make_rgb565_splash.py",
+            "size": 1771,
+            "sha256": "c3f1cfe86da8eff4f9840344996f7aecf662a51d5e71c0d4ccdf9703071d704c"
         },
         {
-            "name": "display_bench_test.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d82a3e3265fa3eaf350d587eceef9aa2b6b25b27/src/display_bench_test.py",
-            "size": 1520,
-            "sha256": "f25a47858ac9a258ac302a5a85bffc05339adc0b3a2626d79d9b47e712d6da7a"
+            "name": "robotics_splash_320x170.rgb565",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/fe900094782884c0ac67726313c139d7c8a77594/src/robotics_splash_320x170.rgb565",
+            "size": 108800,
+            "sha256": "cb65a69fdddc090836bb3e2a7a979b9c8eaf59b85a2c8d00d5b6fdf41e789232"
+        },
+        {
+            "name": "rotating_billboard_weather_clock.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/fe900094782884c0ac67726313c139d7c8a77594/src/rotating_billboard_weather_clock.py",
+            "size": 15065,
+            "sha256": "257a82b8359a4fe654c7de1ddd9a04fcff3def6bbbd4d6227225bf47d8d55c52"
         }
     ]
 }
