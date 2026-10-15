@@ -3,8 +3,8 @@
     "notes": "Updated LEGO Project Lab display test files",
     "files": [
         {
-            "name": "st7789_170x320.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d82a3e3265fa3eaf350d587eceef9aa2b6b25b27/src/st7789_170x320.py",
+            "name": "st7789_240x240.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d82a3e3265fa3eaf350d587eceef9aa2b6b25b27/src/st7789_240x240.py",
             "size": 5434,
             "sha256": "cbc5908502ce09ba26ad01299b1ac32fcca9090ce9856f24cc5f6ff2620192bd"
         },
