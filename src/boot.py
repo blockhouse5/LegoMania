@@ -7,9 +7,31 @@ HOSTNAME = "legolab"
 SETUP_AP_NAME = "LEGO-Lab-Setup"
 
 
+def valid_hostname(value):
+    # A single DNS label also makes interpolation into HTML/config.py safe.
+    return (
+        isinstance(value, str)
+        and 1 <= len(value) <= 63
+        and value[0] != "-"
+        and value[-1] != "-"
+        and all(c in "abcdefghijklmnopqrstuvwxyz0123456789-" for c in value)
+    )
+
+
 def load_config():
+    global HOSTNAME
+
     try:
         import config
+        hostname = getattr(config, "HOSTNAME", "legolab")
+        if isinstance(hostname, str):
+            hostname = hostname.lower()
+        if valid_hostname(hostname):
+            HOSTNAME = hostname
+        else:
+            HOSTNAME = "legolab"
+            print("Invalid HOSTNAME; using legolab")
+
         return config.WIFI_SSID, config.WIFI_PASSWORD
     except Exception as e:
         print("No valid WiFi configuration:", e)
@@ -261,12 +283,12 @@ then open:
 </p>
 
 <h2>
-http://legolab.local
+http://{hostname}.local
 </h2>
 
 </body>
 </html>
-"""
+""".format(hostname=HOSTNAME)
 
                     client.send(
                         "HTTP/1.1 200 OK\r\n"
