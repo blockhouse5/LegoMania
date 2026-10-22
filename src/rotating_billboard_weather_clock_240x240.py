@@ -35,7 +35,7 @@ CLOCK_SECONDS = 10
 WEATHER_SECONDS = 10
 WEATHER_REFRESH_SECONDS = 15 * 60
 SPLASH_SECONDS = 5
-SPLASH_FILE = "robotics_splash_240x240.rgb565"
+SPLASH_FILE = "nanny_pepe_240X240.rgb565"
 
 # Change these three settings for the student's location. Open-Meteo uses the
 # coordinates to select both the weather and the correct local time zone.

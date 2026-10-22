@@ -1,6 +1,6 @@
 {
-    "version": "0.2.5",
-    "notes": "Updated LEGO Project Lab display test files",
+    "version": "0.2.6",
+    "notes": "Updated LEGO Project Lab display animation",
     "files": [
         {
             "name": "rotating_billboard_weather_clock.py",
