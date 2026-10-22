@@ -1,14 +1,17 @@
-"""Rotating LEGO-town billboard with clock and Internet weather slides.
+"""Rotating LEGO-town billboard with clock and animated Internet weather.
 
 Ordinary messages display for three seconds each. A live clock slide follows
 for ten seconds, then current Open-Meteo weather displays for ten seconds.
 Weather is refreshed every 15 minutes and the clock is synchronized by NTP.
+The weather code automatically selects a small animated weather scene.
 """
 
 import asyncio
+import math
 import sys
 import time
 from machine import Pin, SPI
+from time import ticks_add, ticks_diff, ticks_ms
 
 try:
     import ntptime
@@ -34,6 +37,8 @@ DISPLAY_SECONDS = 3
 CLOCK_SECONDS = 10
 WEATHER_SECONDS = 10
 WEATHER_REFRESH_SECONDS = 15 * 60
+ANIMATION_FRAME_MS = 90
+ANIMATION_FRAME_COUNT = 8
 SPLASH_SECONDS = 5
 SPLASH_FILE = "robotics_splash_320x170.rgb565"
 
@@ -124,6 +129,25 @@ def weather_description(code):
     if code in (96, 99):
         return "Storm and hail"
     return "Unknown"
+
+
+def animation_category(code):
+    """Convert an Open-Meteo weather code into an animation family."""
+    if code in (0, 1):
+        return "clear"
+    if code == 2:
+        return "partly_cloudy"
+    if code == 3:
+        return "cloudy"
+    if code in (45, 48):
+        return "fog"
+    if 51 <= code <= 67 or 80 <= code <= 82:
+        return "rain"
+    if 71 <= code <= 77 or 85 <= code <= 86:
+        return "snow"
+    if code >= 95:
+        return "storm"
+    return "cloudy"
 
 
 def synchronize_clock():
@@ -279,6 +303,11 @@ async def main():
     light_blue = rgb565(130, 195, 255)
     magenta = rgb565(255, 80, 210)
     green = rgb565(130, 255, 100)
+    sky = rgb565(18, 75, 135)
+    cloud_light = rgb565(232, 240, 248)
+    cloud_shadow = rgb565(145, 165, 190)
+    fog_light = rgb565(185, 205, 220)
+    snow_blue = rgb565(190, 225, 255)
 
     message_colors = (
         WHITE,
@@ -286,6 +315,18 @@ async def main():
         border,
         green,
     )
+
+    # Only this small rectangle changes during the weather animation. Sending
+    # one prepared RGB565 frame is much faster than redrawing the whole screen.
+    icon_x = 12
+    icon_y = 40
+    icon_width = 128
+    icon_height = 72
+
+    # Retain prepared frames between weather slides. Rebuild them only when
+    # the current weather requires a different animation family.
+    cached_animation_category = None
+    cached_animation_frames = None
 
     def draw_border():
         thickness = 6
@@ -318,6 +359,11 @@ async def main():
     def centered_text(message, y, color, scale=1):
         text_width = len(message) * 8 * scale
         x = max(7, (display.width - text_width) // 2)
+        display.text(message, x, y, color, scale=scale)
+
+    def centered_text_in_region(message, left, width, y, color, scale=1):
+        text_width = len(message) * 8 * scale
+        x = left + max(0, (width - text_width) // 2)
         display.text(message, x, y, color, scale=scale)
 
     def show_splash():
@@ -450,15 +496,179 @@ async def main():
 
             await asyncio.sleep(1)
 
-    def draw_weather():
-        clear_inside()
+    def color_bytes(color):
+        return bytes(((color >> 8) & 0xFF, color & 0xFF))
 
-        if latest_weather is None:
-            centered_text("WEATHER", 45, yellow, scale=3)
-            centered_text("Waiting for update", 95, WHITE, scale=2)
+    def buffer_fill(buffer, color):
+        buffer[:] = color_bytes(color) * (icon_width * icon_height)
+
+    def buffer_fill_rect(buffer, x, y, width, height, color):
+        """Draw a clipped rectangle into an RGB565 animation buffer."""
+        if x < 0:
+            width += x
+            x = 0
+        if y < 0:
+            height += y
+            y = 0
+        if x + width > icon_width:
+            width = icon_width - x
+        if y + height > icon_height:
+            height = icon_height - y
+        if width <= 0 or height <= 0:
             return
 
-        current = latest_weather["current"]
+        row = color_bytes(color) * width
+        row_bytes = width * 2
+
+        for row_number in range(y, y + height):
+            start = (row_number * icon_width + x) * 2
+            buffer[start:start + row_bytes] = row
+
+    def buffer_circle(buffer, center_x, center_y, radius, color):
+        radius_squared = radius * radius
+
+        for change_y in range(-radius, radius + 1):
+            half_width = int(math.sqrt(radius_squared - change_y * change_y))
+            buffer_fill_rect(
+                buffer,
+                center_x - half_width,
+                center_y + change_y,
+                half_width * 2 + 1,
+                1,
+                color,
+            )
+
+    def buffer_line(buffer, x0, y0, x1, y1, color, thickness=2):
+        """Draw a line into a frame using Bresenham's line algorithm."""
+        change_x = abs(x1 - x0)
+        step_x = 1 if x0 < x1 else -1
+        change_y = -abs(y1 - y0)
+        step_y = 1 if y0 < y1 else -1
+        error = change_x + change_y
+
+        while True:
+            buffer_fill_rect(buffer, x0, y0, thickness, thickness, color)
+
+            if x0 == x1 and y0 == y1:
+                break
+
+            twice_error = 2 * error
+            if twice_error >= change_y:
+                error += change_y
+                x0 += step_x
+            if twice_error <= change_x:
+                error += change_x
+                y0 += step_y
+
+    def draw_sun(buffer, center_x, center_y, phase, rotating=True):
+        rotation = phase * math.pi / 24 if rotating else 0
+
+        for ray_number in range(12):
+            angle = ray_number * math.pi / 6 + rotation
+            x0 = int(center_x + math.cos(angle) * 20)
+            y0 = int(center_y + math.sin(angle) * 20)
+            x1 = int(center_x + math.cos(angle) * 28)
+            y1 = int(center_y + math.sin(angle) * 28)
+            buffer_line(buffer, x0, y0, x1, y1, yellow)
+
+        buffer_circle(buffer, center_x, center_y, 16, yellow)
+
+    def draw_cloud(buffer, x, y):
+        shadow_y = y + 5
+        buffer_circle(buffer, x + 17, shadow_y, 11, cloud_shadow)
+        buffer_circle(buffer, x + 34, y, 15, cloud_shadow)
+        buffer_circle(buffer, x + 51, shadow_y, 11, cloud_shadow)
+        buffer_fill_rect(buffer, x + 7, y + 5, 55, 15, cloud_shadow)
+
+        buffer_circle(buffer, x + 17, y, 10, cloud_light)
+        buffer_circle(buffer, x + 34, y - 6, 14, cloud_light)
+        buffer_circle(buffer, x + 51, y, 10, cloud_light)
+        buffer_fill_rect(buffer, x + 7, y, 55, 12, cloud_light)
+
+    def draw_raindrops(buffer, phase, storm=False):
+        rain_color = light_blue if storm else cyan
+
+        for drop_number, drop_x in enumerate((31, 48, 65, 82, 99)):
+            drop_y = 44 + ((phase * 7 + drop_number * 9) % 22)
+            buffer_line(
+                buffer,
+                drop_x,
+                drop_y,
+                drop_x - 3,
+                drop_y + 6,
+                rain_color,
+                2,
+            )
+
+    def draw_snowflakes(buffer, phase):
+        positions = ((31, 0), (48, 13), (65, 5), (82, 20), (99, 9))
+
+        for flake_x, offset in positions:
+            flake_y = 45 + ((phase * 5 + offset) % 20)
+            buffer_fill_rect(buffer, flake_x, flake_y, 3, 3, snow_blue)
+            buffer_fill_rect(buffer, flake_x - 2, flake_y + 1, 7, 1, snow_blue)
+
+    def make_animation_frame(category, phase):
+        frame = bytearray(icon_width * icon_height * 2)
+        buffer_fill(frame, sky)
+
+        # Move forward for half the loop and backward for the other half. This
+        # prevents a visible sideways jump when the animation repeats.
+        motion = (
+            phase
+            if phase < ANIMATION_FRAME_COUNT // 2
+            else ANIMATION_FRAME_COUNT - 1 - phase
+        )
+
+        if category == "clear":
+            draw_sun(frame, 64, 36, phase, rotating=True)
+
+        elif category == "partly_cloudy":
+            draw_sun(frame, 39, 27, phase, rotating=False)
+            draw_cloud(frame, 43 + motion * 3, 41)
+
+        elif category == "cloudy":
+            draw_cloud(frame, 5 + motion * 2, 34)
+            draw_cloud(frame, 60 - motion * 2, 44)
+
+        elif category == "fog":
+            draw_cloud(frame, 30, 28)
+            offset = motion
+            for line_number in range(3):
+                line_y = 48 + line_number * 8
+                buffer_fill_rect(frame, 11 + offset, line_y, 86, 3, fog_light)
+                buffer_fill_rect(frame, 104 - offset, line_y, 13, 3, fog_light)
+
+        elif category == "rain":
+            draw_cloud(frame, 30, 28)
+            draw_raindrops(frame, phase)
+
+        elif category == "snow":
+            draw_cloud(frame, 30, 28)
+            draw_snowflakes(frame, phase)
+
+        elif category == "storm":
+            draw_cloud(frame, 30, 25)
+            draw_raindrops(frame, phase, storm=True)
+            if phase in (1, 2):
+                lightning = rgb565(255, 245, 100)
+                buffer_line(frame, 65, 42, 58, 55, lightning, 4)
+                buffer_line(frame, 58, 55, 67, 53, lightning, 4)
+                buffer_line(frame, 67, 53, 60, 68, lightning, 4)
+
+        return frame
+
+    def show_icon_frame(frame):
+        """Send one complete icon frame in a single fast SPI transfer."""
+        display._window(icon_x, icon_y, icon_width, icon_height)
+        display.cs.value(0)
+        display.dc.value(1)
+        display.spi.write(frame)
+        display.cs.value(1)
+
+    def draw_weather_text(current):
+        clear_inside()
+
         temperature = round(current["temperature_2m"])
         feels_like = round(current["apparent_temperature"])
         humidity = round(current["relative_humidity_2m"])
@@ -469,28 +679,92 @@ async def main():
         color = condition_color(code)
 
         observation_time = current["time"]
-        if "T" in observation_time:
-            update_time = observation_time.split("T")[1]
-        else:
-            update_time = observation_time
+        update_time = (
+            observation_time.split("T")[1]
+            if "T" in observation_time
+            else observation_time
+        )
 
-        centered_text(LOCATION_NAME + " WEATHER", 12, WHITE, scale=2)
-        centered_text(str(temperature) + " F", 39, color, scale=4)
+        centered_text(LOCATION_NAME + " WEATHER", 10, WHITE, scale=2)
 
-        description_scale = 2 if len(description) <= 18 else 1
-        centered_text(description, 78, color, scale=description_scale)
+        right_x = 145
+        right_width = display.width - right_x - 7
+        centered_text_in_region(
+            str(temperature) + " F",
+            right_x,
+            right_width,
+            42,
+            color,
+            scale=4,
+        )
+
+        description_scale = 2 if len(description) <= 10 else 1
+        centered_text_in_region(
+            description,
+            right_x,
+            right_width,
+            82,
+            color,
+            scale=description_scale,
+        )
+        centered_text_in_region(
+            "Feels " + str(feels_like) + " F",
+            right_x,
+            right_width,
+            105,
+            WHITE,
+        )
+
         centered_text(
-            "Feels " + str(feels_like) + " F   Humidity " + str(humidity) + "%",
-            106,
+            "Humidity " + str(humidity) + "%   Wind " + str(wind_speed) + " mph",
+            122,
             WHITE,
         )
         centered_text(
-            "Wind " + str(wind_speed) + " mph   Rain "
-            + "{:.2f}".format(precipitation) + " in",
-            125,
+            "Rain " + "{:.2f}".format(precipitation) + " in   Updated " + update_time,
+            139,
             light_blue,
         )
-        centered_text("Updated " + update_time, 146, gray)
+
+    async def show_animated_weather():
+        nonlocal cached_animation_category, cached_animation_frames
+
+        if latest_weather is None:
+            clear_inside()
+            centered_text("WEATHER", 45, yellow, scale=3)
+            centered_text("Waiting for update", 95, WHITE, scale=2)
+            await asyncio.sleep(WEATHER_SECONDS)
+            return
+
+        current = latest_weather["current"]
+        code = current["weather_code"]
+        category = animation_category(code)
+
+        print("Weather code:", code, "Animation:", category)
+        draw_weather_text(current)
+
+        # Frame construction is deliberately separated from playback. Once
+        # built, each animation step is only one fast transfer over SPI.
+        if category != cached_animation_category:
+            print("Building", category, "animation frames")
+            frames = []
+
+            for phase in range(ANIMATION_FRAME_COUNT):
+                frames.append(make_animation_frame(category, phase))
+                await asyncio.sleep_ms(0)
+
+            cached_animation_category = category
+            cached_animation_frames = frames
+        else:
+            frames = cached_animation_frames
+
+        stop_time = ticks_add(ticks_ms(), WEATHER_SECONDS * 1000)
+        frame_number = 0
+
+        while ticks_diff(stop_time, ticks_ms()) > 0:
+            show_icon_frame(frames[frame_number])
+            frame_number = (frame_number + 1) % len(frames)
+            await asyncio.sleep_ms(ANIMATION_FRAME_MS)
 
     display.fill(background)
     show_splash()
@@ -515,8 +789,7 @@ async def main():
         await show_clock()
 
         print("Billboard weather slide")
-        draw_weather()
-        await asyncio.sleep(WEATHER_SECONDS)
+        await show_animated_weather()
 
     # Keep a reference for MicroPython implementations that aggressively
     # collect tasks. This line is not normally reached.
