@@ -1,24 +1,18 @@
 {
-    "version": "0.2.6",
+    "version": "0.2.7",
     "notes": "Updated LEGO Project Lab display animation",
     "files": [
         {
-            "name": "nanny_pepe_320X170.rgb565",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d88f1d58e8bf13504b02952c074f5495e319d816/src/nanny_pepe_320X170.rgb565",
-            "size": 108800,
-            "sha256": "26bf147451177011d3096e65b5158b94c6b3d0baedb89c6434bc8cbcf1612b9f"
+            "name": "aircraft_monitor.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/b26eb8cc599534297430d867cc9f48ea3b591cef/src/aircraft_monitor.py",
+            "size": 7283,
+            "sha256": "e0cede23d09b16304cb8a7c7de32b03b896179e6ef4e58551d7f183363ac5d28"
         },
         {
-            "name": "rotating_billboard_weather_clock.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d88f1d58e8bf13504b02952c074f5495e319d816/src/rotating_billboard_weather_clock.py",
-            "size": 24332,
-            "sha256": "12dc1f180a448d489eaa979ea65be89a7860fe401b0c2af11a3df31daf333e60"
-        },
-        {
-            "name": "windmill.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d88f1d58e8bf13504b02952c074f5495e319d816/src/windmill.py",
-            "size": 1057,
-            "sha256": "37f6d746a2707a72c914f2b379837175f01d6f5bd37ced9d449b268d28549808"
+            "name": "rotating_billboard_weather_clock2.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/b26eb8cc599534297430d867cc9f48ea3b591cef/src/rotating_billboard_weather_clock2.py",
+            "size": 24333,
+            "sha256": "5a5609df7b5dc1f021500c2fec4e70ee313efc39d673bfe9fea534fe338a489f"
         }
     ]
 }
