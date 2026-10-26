@@ -40,13 +40,13 @@ WEATHER_REFRESH_SECONDS = 15 * 60
 ANIMATION_FRAME_MS = 90
 ANIMATION_FRAME_COUNT = 8
 SPLASH_SECONDS = 5
-SPLASH_FILE = "robotics_splash_320x170.rgb565"
+SPLASH_FILE = "nanny_pepe_320X170.rgb565"
 
 # Change these three settings for the student's location. Open-Meteo uses the
 # coordinates to select both the weather and the correct local time zone.
-LOCATION_NAME = "LYNDEN"
-LATITUDE = "48.95"
-LONGITUDE = "-122.45"
+LOCATION_NAME = "ARCADIA"
+LATITUDE = "37.45370"
+LONGITUDE = "-90.49132"
 
 WEATHER_URL = (
     "https://api.open-meteo.com/v1/forecast"
