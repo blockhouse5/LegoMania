@@ -178,6 +178,8 @@ def draw_radar(display, aircraft_list):
 
     scale = RADAR_R / RADIUS_MILES
 
+    print("RADAR RECEIVED:", len(aircraft_list), "aircraft")
+
     for index, aircraft in enumerate(aircraft_list):
         distance, east, north = distance_and_position(
             aircraft["lat"], aircraft["lon"]
@@ -188,6 +190,15 @@ def draw_radar(display, aircraft_list):
 
         x = round(RADAR_X + east * scale)
         y = round(RADAR_Y - north * scale)
+
+        print(
+            "RADAR:",
+            aircraft.get("flight"),
+            "distance:", round(distance, 1),
+            "x:", x,
+            "y:", y,
+            "heading:", aircraft.get("track")
+        )
 
         heading = aircraft.get("track")
 
