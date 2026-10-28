@@ -1,6 +1,6 @@
 {
-    "version": "0.2.11",
-    "notes": "Updated LEGO Project Lab display animation",
+    "version": "0.2.12",
+    "notes": "Updated LEGO Project Aircraft Tracker",
     "files": [
         {
             "name": "aircraft_tracker_320.py",
