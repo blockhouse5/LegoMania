@@ -4,6 +4,7 @@ Ordinary messages display for three seconds each. A live clock slide follows
 for ten seconds, then current Open-Meteo weather displays for ten seconds.
 Weather is refreshed every 15 minutes and the clock is synchronized by NTP.
 The weather code automatically selects a small animated weather scene.
+An optional list-only slide shows aircraft data from https://adsb.fi/.
 """
 
 import asyncio
@@ -40,13 +41,19 @@ WEATHER_REFRESH_SECONDS = 15 * 60
 ANIMATION_FRAME_MS = 90
 ANIMATION_FRAME_COUNT = 8
 SPLASH_SECONDS = 5
-SPLASH_FILE = "nanny_pepe_320X170.rgb565"
+SPLASH_FILE = "robotics_splash_320x170.rgb565"
+
+# Optional list-only slide. Radar remains a separate program.
+SHOW_AIRCRAFT = True
+AIRCRAFT_SECONDS = 10
+AIRCRAFT_RADIUS_MILES = 20
+AIRCRAFT_REFRESH_SECONDS = 60
 
 # Change these three settings for the student's location. Open-Meteo uses the
 # coordinates to select both the weather and the correct local time zone.
-LOCATION_NAME = "ARCADIA"
-LATITUDE = "37.45370"
-LONGITUDE = "-90.49132"
+LOCATION_NAME = "LYNDEN"
+LATITUDE = "48.95"
+LONGITUDE = "-122.45"
 
 WEATHER_URL = (
     "https://api.open-meteo.com/v1/forecast"
@@ -294,6 +301,16 @@ async def main():
         rotation=1,
         bgr=False,
     )
+
+    aircraft_slide = None
+    if SHOW_AIRCRAFT:
+        if "aircraft_billboard" in sys.modules:
+            del sys.modules["aircraft_billboard"]
+        from aircraft_billboard import AircraftSlide
+        aircraft_slide = AircraftSlide(
+            LATITUDE, LONGITUDE, AIRCRAFT_RADIUS_MILES,
+            AIRCRAFT_REFRESH_SECONDS,
+        )
 
     background = rgb565(5, 20, 55)
     border = rgb565(255, 190, 30)
@@ -790,6 +807,13 @@ async def main():
 
         print("Billboard weather slide")
         await show_animated_weather()
+
+        if aircraft_slide is not None:
+            print("Billboard aircraft list slide")
+            await aircraft_slide.show(
+                display, background, WHITE, cyan, yellow, gray,
+                seconds=AIRCRAFT_SECONDS,
+            )
 
     # Keep a reference for MicroPython implementations that aggressively
     # collect tasks. This line is not normally reached.
