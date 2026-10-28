@@ -3,16 +3,10 @@
     "notes": "Updated LEGO Project Lab display animation",
     "files": [
         {
-            "name": "baron.rgb565",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/61367df38d4df637e55b2e3281b5e273ea5e972f/src/baron.rgb565",
-            "size": 108800,
-            "sha256": "f2ae83ab6112a8c9698f9aff2e7ada53644c455c5e81a668c206a167f51214e9"
-        },
-        {
-            "name": "rotating_billboard_weather_clock_baron.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/61367df38d4df637e55b2e3281b5e273ea5e972f/src/rotating_billboard_weather_clock_baron.py",
-            "size": 25148,
-            "sha256": "cb720294d933da6a76af8f2f62e40e5ec10fdab73648233dc4e9554469cf9217"
+            "name": "aircraft_tracker_320.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/4f31213ce897b64eb6ab79e860105808f76caa4e/src/aircraft_tracker_320.py",
+            "size": 16036,
+            "sha256": "dfeb540f3564e9157a2982a35ae0771a11eadca5924c0df6f2c95d95c0013533"
         }
     ]
 }
