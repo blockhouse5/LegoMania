@@ -1,12 +1,18 @@
 {
-    "version": "0.2.10",
+    "version": "0.2.11",
     "notes": "Updated LEGO Project Lab display animation",
     "files": [
         {
-            "name": "rotating_billboard_weather_clock.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/61bba17752f4130d355c82409c21ce79b2d3c8ff/src/rotating_billboard_weather_clock.py",
-            "size": 25166,
-            "sha256": "aba5e4580cf50a674488ba0757d427a301c36cfa381537218f05fbc210e8c445"
+            "name": "baron.rgb565",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/61367df38d4df637e55b2e3281b5e273ea5e972f/src/baron.rgb565",
+            "size": 108800,
+            "sha256": "f2ae83ab6112a8c9698f9aff2e7ada53644c455c5e81a668c206a167f51214e9"
+        },
+        {
+            "name": "rotating_billboard_weather_clock_baron.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/61367df38d4df637e55b2e3281b5e273ea5e972f/src/rotating_billboard_weather_clock_baron.py",
+            "size": 25148,
+            "sha256": "cb720294d933da6a76af8f2f62e40e5ec10fdab73648233dc4e9554469cf9217"
         }
     ]
 }
