@@ -1,30 +1,12 @@
 {
-    "version": "0.2.9",
+    "version": "0.2.10",
     "notes": "Updated LEGO Project Lab display animation",
     "files": [
         {
-            "name": "aircraft_billboard.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/7b610fa1ff6a8065d658db4e76b4ff1c43bd3632/src/aircraft_billboard.py",
-            "size": 7740,
-            "sha256": "9106bc0069a7d1250acc260726fd5f2f3bda394bf51e3ce9954a00eef7c05ebd"
-        },
-        {
-            "name": "aircraft_radar_170X320.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/7b610fa1ff6a8065d658db4e76b4ff1c43bd3632/src/aircraft_radar_170X320.py",
-            "size": 11423,
-            "sha256": "9ceb056f6385770db43f28cedcd570af1f9a68099c3c8b4073a4308a4077fa90"
-        },
-        {
-            "name": "radar_settings.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/7b610fa1ff6a8065d658db4e76b4ff1c43bd3632/src/radar_settings.py",
-            "size": 359,
-            "sha256": "6771f645563dc56f8d4f1c1e6d33b22adf464ceec2290b78c0dd5d518e6e71c9"
-        },
-        {
             "name": "rotating_billboard_weather_clock.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/7b610fa1ff6a8065d658db4e76b4ff1c43bd3632/src/rotating_billboard_weather_clock.py",
-            "size": 25160,
-            "sha256": "503cff6a2f8cdc0f80679a6631cfdf1f2f247607a47ffa4b35ab317da3f5458c"
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/61bba17752f4130d355c82409c21ce79b2d3c8ff/src/rotating_billboard_weather_clock.py",
+            "size": 25166,
+            "sha256": "aba5e4580cf50a674488ba0757d427a301c36cfa381537218f05fbc210e8c445"
         }
     ]
 }
