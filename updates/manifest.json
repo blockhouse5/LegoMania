@@ -1,12 +1,18 @@
 {
-    "version": "0.2.8",
+    "version": "0.2.9",
     "notes": "Updated LEGO Project Lab display animation",
     "files": [
         {
-            "name": "aircraft_tracker_320.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/3c493f20c0b91bf53f2ad54dc0c7da393d365bd2/src/aircraft_tracker_320.py",
-            "size": 10710,
-            "sha256": "25837f084f11683328c3bbe7776f983286c39da58450fa88c17f8f3014af122f"
+            "name": "aircraft_radar_170X320.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/71177ee63ad8c369b147373efe0840b1dbed7f76/src/aircraft_radar_170X320.py",
+            "size": 11423,
+            "sha256": "9ceb056f6385770db43f28cedcd570af1f9a68099c3c8b4073a4308a4077fa90"
+        },
+        {
+            "name": "radar_settings.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/71177ee63ad8c369b147373efe0840b1dbed7f76/src/radar_settings.py",
+            "size": 359,
+            "sha256": "6771f645563dc56f8d4f1c1e6d33b22adf464ceec2290b78c0dd5d518e6e71c9"
         }
     ]
 }
