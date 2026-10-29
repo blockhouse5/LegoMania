@@ -16,11 +16,6 @@ from machine import Pin, SPI
 from st7789_240x240 import ST7789_240X240, rgb565
 
 try:
-    import ntptime
-except ImportError:
-    ntptime = None
-
-try:
     import requests
 except ImportError:
     import urequests as requests
@@ -40,6 +35,10 @@ RADIUS_MILES = 20
 IDLE_REFRESH_SECONDS = 60
 ACTIVE_REFRESH_SECONDS = 15
 ERROR_REFRESH_SECONDS = 60
+
+# ADS-B altitude can fluctuate slightly even during level flight. Changes no
+# larger than this are reported as stable rather than climb or descent.
+ALTITUDE_STABLE_TOLERANCE_FT = 100
 
 
 # ========================================
@@ -113,126 +112,109 @@ def aircraft_speed_knots(aircraft):
     return None
 
 
-def synchronize_utc_clock():
-    """Set the ESP32 real-time clock from an Internet time server."""
-    if ntptime is None:
-        print("UTC clock sync unavailable: ntptime module not found")
-        return False
+def aircraft_tracking_key(aircraft):
+    """Return a stable identity for comparing consecutive API reports."""
+    hex_id = aircraft.get("hex")
 
-    try:
-        ntptime.settime()
-        print("UTC clock synchronized")
-        return True
-    except Exception as error:
-        print("UTC clock sync error:", error)
-        return False
+    if hex_id:
+        return str(hex_id).strip().lower()
+
+    return aircraft_name(aircraft)
 
 
-def utc_timestamp():
-    """Return a readable UTC timestamp, or a clear fallback if unsynchronized."""
-    try:
-        date_time = time.localtime()
-        year, month, day, hour, minute, second = date_time[:6]
+def aircraft_source(aircraft):
+    """Return a readable description of the API's message-source type."""
+    source = aircraft.get("type")
 
-        # An unsynchronized ESP32 commonly starts near its epoch year.
-        if year < 2024:
-            return "time unavailable"
-
-        return (
-            "{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC".format(
-                year, month, day, hour, minute, second
-            )
-        )
-    except Exception:
-        return "time unavailable"
-
-
-def make_session_record(aircraft, altitude=None, speed_knots=None):
-    """Copy the useful values so the record survives later API updates."""
-    return {
-        "name": aircraft_name(aircraft),
-        "plane_type": aircraft.get("t") or "Unknown",
-        "altitude": altitude,
-        "speed_knots": speed_knots,
-        "observed_at": utc_timestamp(),
+    source_labels = {
+        "adsb_icao": "ADS-B ICAO",
+        "adsb_icao_nt": "ADS-B non-transponder",
+        "adsr_icao": "ADS-R rebroadcast",
+        "tisb_icao": "TIS-B ICAO",
+        "adsc": "ADS-C satellite",
+        "mlat": "MLAT position",
+        "other": "Other source",
+        "mode_s": "Mode S",
+        "adsb_other": "ADS-B non-ICAO",
+        "adsr_other": "ADS-R non-ICAO",
+        "tisb_other": "TIS-B non-ICAO",
+        "tisb_trackfile": "TIS-B radar track",
     }
 
+    if isinstance(source, str) and source:
+        label = source_labels.get(source, "Unknown source")
+        return "{} ({})".format(label, source)
 
-def update_session_records(aircraft_list, highest_record, fastest_record):
-    """Update the highest and fastest aircraft observed since startup."""
-    for aircraft in aircraft_list:
-        altitude = aircraft_altitude(aircraft)
-        speed_knots = aircraft_speed_knots(aircraft)
+    hex_id = aircraft.get("hex")
 
-        if altitude is not None:
-            if (
-                highest_record is None
-                or altitude > highest_record["altitude"]
-            ):
-                highest_record = make_session_record(
-                    aircraft,
-                    altitude=altitude,
-                    speed_knots=speed_knots,
-                )
-                print(
-                    "New session altitude record:",
-                    highest_record["name"],
-                    "{} ft |".format(int(round(altitude))),
-                    highest_record["observed_at"],
-                )
+    if isinstance(hex_id, str) and hex_id.startswith("~"):
+        return "Non-ICAO (source unavailable)"
 
-        if speed_knots is not None:
-            if (
-                fastest_record is None
-                or speed_knots > fastest_record["speed_knots"]
-            ):
-                fastest_record = make_session_record(
-                    aircraft,
-                    altitude=altitude,
-                    speed_knots=speed_knots,
-                )
-                speed_mph = speed_knots * 1.15078
-                print(
-                    "New session speed record:",
-                    fastest_record["name"],
-                    "{} mph".format(int(round(speed_mph))),
-                    "({} kt) |".format(int(round(speed_knots))),
-                    fastest_record["observed_at"],
-                )
-
-    return highest_record, fastest_record
+    return "unknown"
 
 
-def print_session_records(highest_record, fastest_record):
-    """List the current session records in the LEGO Lab Output panel."""
-    print("SESSION RECORDS")
+def altitude_trend(aircraft, previous_altitudes):
+    """Compare this altitude with the preceding report for the aircraft."""
+    key = aircraft_tracking_key(aircraft)
+    altitude = aircraft_altitude(aircraft)
 
-    if highest_record is None:
-        print("Highest: no altitude received yet")
+    if altitude is None:
+        return "unknown", None
+
+    previous = previous_altitudes.get(key)
+    previous_altitudes[key] = altitude
+
+    if previous is None:
+        return "unknown (first contact)", None
+
+    change = altitude - previous
+
+    if change > ALTITUDE_STABLE_TOLERANCE_FT:
+        return "ascending", change
+
+    if change < -ALTITUDE_STABLE_TOLERANCE_FT:
+        return "descending", change
+
+    return "stable", change
+
+
+def print_aircraft_details(aircraft, previous_altitudes):
+    """Print one expanded line for an aircraft in the current report."""
+    altitude = aircraft_altitude(aircraft)
+    heading = aircraft.get("track")
+    plane_type = aircraft.get("t") or "Unknown"
+    trend, altitude_change = altitude_trend(
+        aircraft, previous_altitudes
+    )
+
+    if altitude is None:
+        altitude_text = "unknown"
     else:
-        print(
-            "Highest:",
-            highest_record["name"],
-            "- {} ft".format(
-                int(round(highest_record["altitude"]))
-            ),
-            "|", highest_record["observed_at"],
-        )
+        altitude_text = "{} ft".format(int(round(altitude)))
 
-    if fastest_record is None:
-        print("Fastest: no ground speed received yet")
+    if isinstance(heading, (int, float)):
+        heading_text = "{} deg".format(int(round(heading)))
     else:
-        speed_knots = fastest_record["speed_knots"]
-        speed_mph = speed_knots * 1.15078
-        print(
-            "Fastest:",
-            fastest_record["name"],
-            "- {} mph ({} kt)".format(
-                int(round(speed_mph)),
-                int(round(speed_knots)),
-            ),
-            "|", fastest_record["observed_at"],
+        heading_text = "unknown"
+
+    if altitude_change is not None and trend != "stable":
+        trend_text = "{} ({:+} ft)".format(
+            trend, int(round(altitude_change))
         )
+    else:
+        trend_text = trend
+
+    print(
+        aircraft_name(aircraft),
+        "| distance: {:.1f} miles".format(
+            aircraft["distance_miles"]
+        ),
+        "| heading:", heading_text,
+        "| type:", plane_type,
+        "| source:", aircraft_source(aircraft),
+        "| altitude:", altitude_text,
+        "|", trend_text,
+    )
 
 
 def draw_line(display, x1, y1, x2, y2, color):
@@ -341,8 +323,6 @@ def draw_radar(display, aircraft_list):
 
     scale = RADAR_R / RADIUS_MILES
 
-    print("RADAR RECEIVED:", len(aircraft_list), "aircraft")
-
     for index, aircraft in enumerate(aircraft_list):
         distance, east, north = distance_and_position(
             aircraft["lat"], aircraft["lon"]
@@ -353,15 +333,6 @@ def draw_radar(display, aircraft_list):
 
         x = round(RADAR_X + east * scale)
         y = round(RADAR_Y - north * scale)
-
-        print(
-            "RADAR:",
-            aircraft.get("flight"),
-            "distance:", round(distance, 1),
-            "x:", x,
-            "y:", y,
-            "heading:", aircraft.get("track"),
-        )
 
         heading = aircraft.get("track")
 
@@ -542,18 +513,14 @@ async def main():
         display.text("WAITING FOR WIFI", 40, 90, YELLOW)
         await asyncio.sleep(2)
 
-    # Record times are stored in UTC so they remain unambiguous through
-    # daylight-saving changes and when the program is tested elsewhere.
-    synchronize_utc_clock()
-
     # Main aircraft monitoring loop.
     aircraft_list = []
     last_success_ms = None
     api_error = False
 
-    # These records last until this program is stopped or the ESP32 restarts.
-    highest_record = None
-    fastest_record = None
+    # Altitudes are kept by ICAO hex ID so each new API report can be compared
+    # with the preceding report for that aircraft.
+    previous_altitudes = {}
 
     while True:
         try:
@@ -569,12 +536,6 @@ async def main():
             last_success_ms = time.ticks_ms()
             api_error = False
 
-            highest_record, fastest_record = update_session_records(
-                aircraft_list,
-                highest_record,
-                fastest_record,
-            )
-
             draw_display(display, aircraft_list, "LIVE")
 
             print(
@@ -583,13 +544,7 @@ async def main():
             )
 
             for ac in aircraft_list:
-                print(
-                    aircraft_name(ac),
-                    "{:.1f} miles".format(ac["distance_miles"]),
-                    "heading:", ac.get("track"),
-                )
-
-            print_session_records(highest_record, fastest_record)
+                print_aircraft_details(ac, previous_altitudes)
 
         except Exception as error:
             print("Aircraft API error:", error)
