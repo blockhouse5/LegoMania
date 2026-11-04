@@ -18,7 +18,6 @@ PROTECTED_FILES = (
     "webserver.py",
     "webrepl_cfg.py",
     "main.py",
-    "config.py",
     "updater.py",
     "version.py",
     "lego.py", 
