@@ -3,10 +3,16 @@
     "notes": "Updated LEGO Project Aircraft Tracker",
     "files": [
         {
-            "name": "aircraft_tracker_320.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/4f31213ce897b64eb6ab79e860105808f76caa4e/src/aircraft_tracker_320.py",
-            "size": 16036,
-            "sha256": "dfeb540f3564e9157a2982a35ae0771a11eadca5924c0df6f2c95d95c0013533"
+            "name": "tof_distance_test.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d146492afcf93b7a2f98db3bf89b5cd83608d9ac/src/tof_distance_test.py",
+            "size": 945,
+            "sha256": "8345ca07bf2b81e6024e014aad64efd5c5b2c932187a1c5efa349c50a94d5232"
+        },
+        {
+            "name": "vl53l1x.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d146492afcf93b7a2f98db3bf89b5cd83608d9ac/src/vl53l1x.py",
+            "size": 8806,
+            "sha256": "cd7f27bd8fd323c19a95405defbd44972ca46302155004a4d43b8900d1e4d242"
         }
     ]
 }
