@@ -1,12 +1,36 @@
 {
-    "version": "0.2.15",
+    "version": "0.2.16",
     "notes": "Updated LEGO Project Aircraft Tracker",
     "files": [
         {
-            "name": "webserver.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/271b53108905a2487e3884a7e0625dcbf97cd9ab/src/webserver.py",
-            "size": 27107,
-            "sha256": "515760a75e0959b05dda23bec537fa1ba6bce570680956114f16a00de0c40369"
+            "name": "240_240_display_test.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/c746934d61142d53ec4f5c9cde1bdf4a1e0407b4/src/240_240_display_test.py",
+            "size": 1054,
+            "sha256": "aea434cf2b18b82f067f26bc6da1f7142542345a8a19b49886e9e1f4af6ed9dd"
+        },
+        {
+            "name": "rover_sensor_monitor.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/c746934d61142d53ec4f5c9cde1bdf4a1e0407b4/src/rover_sensor_monitor.py",
+            "size": 6421,
+            "sha256": "30b6f4f916b8e5bd8e41c52c92757ef32dc9123b20b7c75eb08e558841d659a2"
+        },
+        {
+            "name": "st7789_240x240.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/c746934d61142d53ec4f5c9cde1bdf4a1e0407b4/src/st7789_240x240.py",
+            "size": 5511,
+            "sha256": "27666a777217e67099b20cbb825ed76e6bb9ea95d65fd8808021b8023f39d251"
+        },
+        {
+            "name": "tof_addressing.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/c746934d61142d53ec4f5c9cde1bdf4a1e0407b4/src/tof_addressing.py",
+            "size": 4486,
+            "sha256": "0b9f8965266cb5890ab8c3538cbb33e7b836b3a88ea01c153652c168202920d1"
+        },
+        {
+            "name": "vl53l1x.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/c746934d61142d53ec4f5c9cde1bdf4a1e0407b4/src/vl53l1x.py",
+            "size": 8806,
+            "sha256": "cd7f27bd8fd323c19a95405defbd44972ca46302155004a4d43b8900d1e4d242"
         }
     ]
 }
