@@ -1,12 +1,12 @@
 {
-    "version": "0.2.17",
+    "version": "0.2.18",
     "notes": "Updated LEGO Project Aircraft Tracker",
     "files": [
         {
-            "name": "rover_sensor_radar.py",
-            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/d6e5b95e466cfc3e55350d2c06fae6c81b6612af/src/rover_sensor_radar.py",
-            "size": 7209,
-            "sha256": "632dc2b01d35ac0d345eb39506bf71cba22f4cea49c271deb1effb8564aaf652"
+            "name": "rover_sensor_radar_web.py",
+            "url": "https://raw.githubusercontent.com/blockhouse5/LegoMania/0a6362d34f45e644d26c261888ac154b12293efc/src/rover_sensor_radar_web.py",
+            "size": 15911,
+            "sha256": "6630589056bbc315d7271805831273083eddac918d1dde1ffa028250e47e6d53"
         }
     ]
 }
